@@ -510,6 +510,33 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `varian
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `return_requests`
+--
+
+CREATE TABLE `return_requests` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `order_item_id` int(11) NOT NULL,
+  `product_name` varchar(200) NOT NULL,
+  `product_variant` varchar(80) DEFAULT NULL,
+  `product_image` varchar(255) DEFAULT NULL,
+  `proof_image` varchar(255) NOT NULL,
+  `reason` text NOT NULL,
+  `status` enum('pending','approved','rejected','completed') NOT NULL DEFAULT 'pending',
+  `admin_note` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `order_id` (`order_id`),
+  KEY `status` (`status`),
+  KEY `order_item_id` (`order_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `order_log`
 --
 

@@ -13,7 +13,7 @@ $spent = array_sum(array_map(fn($o) => $o['status'] !== 'cancelled' ? $o['total'
 ?><div class="container sec"><div class="acc-head"><?= user_avatar($u) ?><div><h1 class="page-title" style="margin:0"><?= e($u['name']) ?></h1><span class="muted"><?= e($u['email']) ?></span></div></div>
 <?php foreach (flash() as $f) echo '<div class="alert ' . $f[0] . '">' . e($f[1]) . '</div>'; ?>
 <div class="stats3"><div class="stat card3d"><span>📦</span><b><?= count($orders) ?></b><small><?= t('my_orders') ?></small></div><div class="stat card3d"><span>💰</span><b><?= money($spent) ?></b><small><?= t('total') ?></small></div><div class="stat card3d"><span>🚚</span><b><?= count(array_filter($orders, fn($o) => in_array($o['status'], ['confirmed', 'processing', 'shipped']))) ?></b><small><?= t('s_shipped') ?></small></div></div>
-<div class="tab-h acc"><a class="<?= $tab === 'orders' ? 'on' : '' ?>" href="?tab=orders"><?= t('my_orders') ?></a><a class="<?= $tab === 'profile' ? 'on' : '' ?>" href="?tab=profile"><?= t('profile') ?></a></div>
+<div class="tab-h acc"><a class="<?= $tab === 'orders' ? 'on' : '' ?>" href="?tab=orders"><?= t('my_orders') ?></a><a class="<?= $tab === 'profile' ? 'on' : '' ?>" href="?tab=profile"><?= t('profile') ?></a><a href="<?= url('return.php') ?>"><?= t('return_title') ?></a></div>
 <?php if ($tab === 'orders') {
   if (!empty($_GET['view'])) { $o = row('SELECT * FROM orders WHERE order_no=? AND user_id=?', [$_GET['view'], $u['id']]); if ($o) echo order_detail_html($o); echo '<a class="btn btn-ghost" href="?tab=orders">←</a>'; }
   elseif (!$orders) { echo '<p class="empty card-flat">' . t('cart_empty') . '</p>'; }

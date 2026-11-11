@@ -67,6 +67,31 @@ function save_upload($tmp, $name, $size) {
     $f = date('ymd') . '-' . bin2hex(random_bytes(5)) . '.' . $ext;
     return move_uploaded_file($tmp, UPLOAD_DIR . $f) ? $f : null;
 }
+function ensure_return_requests() {
+    static $ready = false;
+    if ($ready) return;
+    q("CREATE TABLE IF NOT EXISTS return_requests (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        order_id INT NOT NULL,
+        order_item_id INT NOT NULL,
+        product_name VARCHAR(200) NOT NULL,
+        product_variant VARCHAR(80) DEFAULT NULL,
+        product_image VARCHAR(255) DEFAULT NULL,
+        proof_image VARCHAR(255) NOT NULL,
+        reason TEXT NOT NULL,
+        status ENUM('pending','approved','rejected','completed') NOT NULL DEFAULT 'pending',
+        admin_note TEXT DEFAULT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY order_id (order_id),
+        KEY status (status),
+        KEY order_item_id (order_item_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $ready = true;
+}
 
 /* ---------- Auth ---------- */
 function user() { static $u = false; if ($u === false) { $u = null; if (!empty($_SESSION['uid'])) { $u = row('SELECT * FROM users WHERE id=? AND status=1', [$_SESSION['uid']]); if (!$u) unset($_SESSION['uid']); } } return $u; }
