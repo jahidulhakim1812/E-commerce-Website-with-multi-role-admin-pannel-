@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api.php
+Disallow: /checkout.php
+Disallow: /cart.php
+Disallow: /account.php
+Disallow: /install.php
+Allow: /
+# Sitemap: https://YOUR-DOMAIN/sitemap.php

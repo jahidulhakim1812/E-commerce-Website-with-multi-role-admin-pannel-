@@ -1,0 +1,38 @@
+<?php
+require '_layout.php'; admin_start('Subscribers', 'customers');
+try { q("UPDATE newsletter SET token=SUBSTR(MD5(CONCAT(id,email,RAND())),1,24) WHERE token IS NULL OR token=''"); } catch (Exception $e) {}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_check();
+    if (isset($_POST['add'])) { $em = strtolower(trim($_POST['email'] ?? '')); if (filter_var($em, FILTER_VALIDATE_EMAIL)) { q("INSERT INTO newsletter(email,token,status,source) VALUES(?,?,1,'admin') ON DUPLICATE KEY UPDATE status=1", [$em, substr(bin2hex(random_bytes(12)), 0, 24)]); flash('Subscriber added.'); } else flash('Enter a valid email.', 'err'); }
+    elseif (isset($_POST['toggle'])) { q('UPDATE newsletter SET status=1-status WHERE id=?', [(int)$_POST['toggle']]); flash('Updated.'); }
+    elseif (isset($_POST['del'])) { q('DELETE FROM newsletter WHERE id=?', [(int)$_POST['del']]); flash('Subscriber deleted.'); }
+    elseif (isset($_POST['send'])) {
+        $te = trim($_POST['title_en'] ?? ''); if ($te === '') { flash('Title is required.', 'err'); redirect('subscribers.php'); }
+        $aud = ($_POST['aud'] ?? 'subscribers') === 'all' ? 'all' : 'subscribers'; $img = upload_image('image');
+        $id = notify_create(in_array($_POST['type'] ?? '', ['offer', 'product']) ? $_POST['type'] : 'message', $te, trim($_POST['body_en'] ?? ''), trim($_POST['link'] ?? ''), trim($_POST['title_bn'] ?? ''), trim($_POST['body_bn'] ?? ''), $img, false);
+        if (empty($_POST['bell'])) q('UPDATE notifications SET status=0 WHERE id=?', [$id]);
+        if (S('mail_enabled') === '1') { $n = notify_email($id, $aud); flash("Message sent to $n people by email" . (!empty($_POST['bell']) ? ' and published on the website bell.' : '.')); }
+        else flash('Saved' . (!empty($_POST['bell']) ? ' on the website bell' : '') . '. Email was NOT sent – enable SMTP in Settings → Email first.', 'err');
+    }
+    redirect('subscribers.php' . (!empty($_POST['back']) ? '?' . $_POST['back'] : ''));
+}
+$st = $_GET['st'] ?? ''; $qv = trim($_GET['q'] ?? ''); $w = ['1=1']; $a = [];
+if ($st === 'active') $w[] = 'status=1'; if ($st === 'off') $w[] = 'status=0'; if ($qv !== '') { $w[] = 'email LIKE ?'; $a[] = "%$qv%"; } $W = implode(' AND ', $w);
+if (isset($_GET['export'])) { ob_end_clean(); header('Content-Type: text/csv'); header('Content-Disposition: attachment; filename=subscribers-' . date('Ymd') . '.csv'); $f = fopen('php://output', 'w'); fputcsv($f, ['Email', 'Status', 'Source', 'Subscribed']); foreach (rows("SELECT * FROM newsletter WHERE $W ORDER BY id DESC", $a) as $r) fputcsv($f, [$r['email'], $r['status'] ? 'active' : 'unsubscribed', $r['source'] ?? '', $r['created_at']]); exit; }
+$tot = (int)val('SELECT COUNT(*) FROM newsletter'); $act = (int)val('SELECT COUNT(*) FROM newsletter WHERE status=1'); $mon = (int)val("SELECT COUNT(*) FROM newsletter WHERE created_at >= DATE_FORMAT(NOW(),'%Y-%m-01')"); $cus = (int)val("SELECT COUNT(*) FROM users WHERE role='customer' AND email NOT LIKE '%@guest.local'");
+echo '<div class="cards"><div class="kpi c3d g"><span class="ki">✉️</span><div><small>Active subscribers</small><b>' . $act . '</b></div></div><div class="kpi c3d b"><span class="ki">👥</span><div><small>Total (incl. unsubscribed)</small><b>' . $tot . '</b></div></div><div class="kpi c3d o"><span class="ki">📈</span><div><small>New this month</small><b>' . $mon . '</b></div></div><div class="kpi c3d p"><span class="ki">👤</span><div><small>Customers with email</small><b>' . $cus . '</b></div></div></div>';
+echo '<div class="panel sub-compose"><div class="panel-h"><h3>📢 Send a notification to subscribers</h3></div><form method="post" enctype="multipart/form-data" class="aform">' . csrf_field() . '<input type="hidden" name="send" value="1"><div class="fgrid2">
+<div class="fld half"><label>Type</label><select name="type"><option value="message">Custom message</option><option value="offer">Offer / discount</option><option value="product">New product</option></select></div><div class="fld half"><label>Send to</label><select name="aud"><option value="subscribers">Subscribers only (' . $act . ')</option><option value="all">Subscribers + registered customers (' . count(notify_recipients('all')) . ')</option></select></div>
+<div class="fld half"><label>Title (English) *</label><input type="text" name="title_en" required></div><div class="fld half"><label>Title (বাংলা)</label><input type="text" name="title_bn"></div>
+<div class="fld half"><label>Message (English)</label><textarea name="body_en" rows="3"></textarea></div><div class="fld half"><label>Message (বাংলা)</label><textarea name="body_bn" rows="3"></textarea></div>
+<div class="fld half"><label>Link (optional)</label><input type="text" name="link" placeholder="shop.php?offer=1"></div><div class="fld half"><label>Picture (optional)</label><input type="file" name="image" accept="image/*"></div>
+<div class="fld full"><label class="sw"><input type="checkbox" name="bell" value="1" checked><span></span> Also show in the 🔔 bell on the website for every visitor</label></div></div>
+<div class="form-actions"><button class="abtn">🚀 Send notification</button></div></form></div>';
+$per = 25; $pg = max(1, (int)($_GET['page'] ?? 1)); $n = (int)val("SELECT COUNT(*) FROM newsletter WHERE $W", $a); $rs = rows("SELECT * FROM newsletter WHERE $W ORDER BY id DESC LIMIT $per OFFSET " . (($pg - 1) * $per), $a); $pages = max(1, ceil($n / $per));
+echo '<div class="panel"><div class="panel-h"><h3>Subscribed emails <small>(' . $n . ')</small></h3><form class="filt"><input name="q" value="' . e($qv) . '" placeholder="Search email"><select name="st"><option value="">All</option><option value="active" ' . ($st === 'active' ? 'selected' : '') . '>Active</option><option value="off" ' . ($st === 'off' ? 'selected' : '') . '>Unsubscribed</option></select><button class="abtn sm">Filter</button><a class="abtn sm ghost" href="?' . e(http_build_query(array_merge($_GET, ['export' => 1]))) . '">⬇ CSV</a></form></div>';
+echo '<form method="post" class="filt" style="margin-bottom:14px">' . csrf_field() . '<input type="hidden" name="add" value="1"><input type="email" name="email" placeholder="Add an email manually" required><button class="abtn sm">＋ Add</button></form>';
+echo '<div class="table-wrap"><table class="atbl"><tr><th>#</th><th>Email</th><th>Source</th><th>Subscribed</th><th>Status</th><th>Actions</th></tr>';
+foreach ($rs as $r) echo '<tr><td>' . $r['id'] . '</td><td>' . e($r['email']) . '</td><td>' . e($r['source'] ?? 'site') . '</td><td>' . date('d M Y h:i A', strtotime($r['created_at'])) . '</td><td><span class="pill ' . ($r['status'] ? 's-delivered' : 's-cancelled') . '">' . ($r['status'] ? 'Active' : 'Unsubscribed') . '</span></td><td class="acts"><form method="post">' . csrf_field() . '<input type="hidden" name="back" value="' . e(http_build_query($_GET)) . '"><button class="abtn sm ghost" name="toggle" value="' . $r['id'] . '">' . ($r['status'] ? 'Pause' : 'Activate') . '</button></form><form method="post" onsubmit="return confirm(\'Delete this subscriber?\')">' . csrf_field() . '<input type="hidden" name="back" value="' . e(http_build_query($_GET)) . '"><button class="abtn sm danger" name="del" value="' . $r['id'] . '">🗑</button></form></td></tr>';
+if (!$rs) echo '<tr><td colspan="6" class="empty">No subscribers yet. Visitors subscribe from the newsletter box on the home page or the 🔔 panel.</td></tr>';
+echo '</table></div>'; if ($pages > 1) { echo '<div class="pager">'; for ($i = 1; $i <= $pages; $i++) echo '<a class="' . ($i == $pg ? 'on' : '') . '" href="?' . e(http_build_query(array_merge($_GET, ['page' => $i]))) . '">' . $i . '</a>'; echo '</div>'; } echo '</div>';
+admin_end();
