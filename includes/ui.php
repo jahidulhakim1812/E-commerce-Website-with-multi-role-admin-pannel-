@@ -62,6 +62,56 @@ function render_section($s) {
         <section class="container sec"><?php section_head($s);
         if (($s['layout'] ?? 'grid') !== 'grid') { echo hs_open(0); foreach ($ps as $p) echo '<div class="hs-item">' . product_card($p) . '</div>'; echo hs_close(); }
         else { echo '<div class="grid">'; foreach ($ps as $p) echo product_card($p); echo '</div>'; } ?></section><?php break;
+    case 'videos':
+        ensure_product_videos();
+        $videos = rows("SELECT v.*, c.name_en AS category_en, c.name_bn AS category_bn,
+            c.image AS category_image, c.icon AS category_icon
+            FROM product_videos v JOIN categories c ON c.id=v.category_id
+            WHERE v.status=1 AND c.status=1 ORDER BY c.sort_order, c.id, v.sort_order, v.id DESC");
+        if (!$videos) return;
+        $storyCategories = [];
+        foreach ($videos as $video) {
+            $categoryId = (int)$video['category_id'];
+            if (!isset($storyCategories[$categoryId])) {
+                $storyCategories[$categoryId] = [
+                    'name' => tr($video, 'category'),
+                    'image' => has_img($video['category_image']) ? img($video['category_image']) : '',
+                    'icon' => $video['category_icon'] ?: '🥜',
+                    'videos' => [],
+                ];
+            }
+            $storyCategories[$categoryId]['videos'][] = [
+                'title' => tr($video, 'title'),
+                'src' => url('uploads/' . rawurlencode($video['video_file'])),
+                'type' => strtolower(pathinfo($video['video_file'], PATHINFO_EXTENSION)) === 'webm' ? 'video/webm' : 'video/mp4',
+            ];
+        }
+        $storyCategories = array_slice(array_values($storyCategories), 0, max(1, (int)$s['limit_n']));
+        ?>
+        <section class="container sec video-stories"><?php section_head($s, false); echo hs_open(0); foreach ($storyCategories as $i => $category): ?>
+          <button type="button" class="hs-item story-category" data-story-category="<?= $i ?>" aria-label="<?= e($category['name']) ?>">
+            <span class="story-ring"><span class="story-avatar"><?= $category['image'] ? '<img src="' . e($category['image']) . '" alt="">' : e($category['icon']) ?></span></span>
+            <span class="story-category-name"><?= e($category['name']) ?></span>
+          </button>
+        <?php endforeach; echo hs_close(); ?>
+        <script type="application/json" id="productStoryData"><?= json_encode($storyCategories, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
+        <div class="story-viewer" id="productStoryViewer" role="dialog" aria-modal="true" aria-label="<?= e(tr($s, 'title')) ?>" tabindex="-1" hidden>
+          <button type="button" class="story-backdrop" data-story-close aria-label="Close stories"></button>
+          <div class="story-player">
+            <div class="story-progress" data-story-progress></div>
+            <div class="story-top">
+              <span class="story-viewer-avatar" data-story-avatar></span>
+              <div class="story-viewer-label"><b data-story-category-name></b><small data-story-title></small></div>
+              <button type="button" class="story-control" data-story-sound aria-label="Mute video">🔊</button>
+              <button type="button" class="story-control" data-story-toggle aria-label="Pause video">Ⅱ</button>
+              <button type="button" class="story-control story-close" data-story-close aria-label="Close stories">×</button>
+            </div>
+            <video class="story-video" data-story-video playsinline preload="metadata"></video>
+            <button type="button" class="story-play" data-story-play hidden>▶</button>
+            <button type="button" class="story-nav story-prev" data-story-prev aria-label="Previous story">‹</button>
+            <button type="button" class="story-nav story-next" data-story-next aria-label="Next story">›</button>
+          </div>
+        </div></section><?php break;
     case 'banner':
         if (!has_img($s['image2'] ?? '')) return;
         $offerImage = getimagesize(UPLOAD_DIR . $s['image2']); $offerRatio = $offerImage ? (int)$offerImage[0] . ' / ' . (int)$offerImage[1] : '3 / 1'; ?>

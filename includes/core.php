@@ -92,6 +92,31 @@ function ensure_return_requests() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     $ready = true;
 }
+function ensure_product_videos() {
+    static $ready = false;
+    if ($ready) return;
+    q("CREATE TABLE IF NOT EXISTS product_videos (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        category_id INT NOT NULL,
+        title_en VARCHAR(200) NOT NULL,
+        title_bn VARCHAR(200) DEFAULT NULL,
+        video_file VARCHAR(255) NOT NULL,
+        sort_order INT NOT NULL DEFAULT 0,
+        status TINYINT(1) NOT NULL DEFAULT 1,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY category_id (category_id),
+        KEY status_order (status, sort_order, id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    if (val("SELECT sval FROM settings WHERE skey='video_stories_section_seeded'") !== '1') {
+        if (!val("SELECT id FROM sections WHERE type='videos' LIMIT 1")) {
+            q("INSERT INTO sections (type,title_en,title_bn,subtitle_en,subtitle_bn,source,limit_n,layout,sort_order,status)
+                VALUES ('videos','Product Stories & Videos','পণ্যের ভিডিও গল্প','See our products in action','পণ্যগুলোকে ভিডিওতে দেখুন','',12,'slider',4,1)");
+        }
+        set_setting('video_stories_section_seeded', '1');
+    }
+    $ready = true;
+}
 
 /* ---------- Auth ---------- */
 function user() { static $u = false; if ($u === false) { $u = null; if (!empty($_SESSION['uid'])) { $u = row('SELECT * FROM users WHERE id=? AND status=1', [$_SESSION['uid']]); if (!$u) unset($_SESSION['uid']); } } return $u; }

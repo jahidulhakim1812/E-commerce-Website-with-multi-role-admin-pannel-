@@ -944,7 +944,28 @@ INSERT INTO `sections` (`id`, `type`, `title_en`, `title_bn`, `subtitle_en`, `su
 (9, 'testimonials', 'What Our Customers Say', 'আমাদের গ্রাহকরা কী বলেন', '', '', '', 6, 'slider', '', '', '', NULL, '', '', '', 9, 1),
 (10, 'newsletter', 'Subscribe to our Newsletter', 'আমাদের নিউজলেটারে সাবস্ক্রাইব করুন', 'Get new arrivals, offers and health tips - right in your inbox and on the site.', 'নতুন পণ্য, অফার ও স্বাস্থ্য টিপস পান - ইনবক্সে ও সাইটে।', '', 0, 'grid', '', '', '', NULL, '', 'Subscribe', 'সাবস্ক্রাইব', 10, 1),
 (11, 'offer', NULL, NULL, NULL, NULL, 'featured', 8, 'grid', NULL, NULL, NULL, '261111-ba5687ea35.png', 'shop.php', 'Shop the Offer', 'অফার দেখুন', 1, 1),
-(13, 'banner', '', '', '', '', 'featured', 8, 'grid', '', '', '', '261111-fb0e159e0b.jpg', '', '', '', 12, 1);
+(13, 'banner', '', '', '', '', 'featured', 8, 'grid', '', '', '', '261111-fb0e159e0b.jpg', '', '', '', 12, 1),
+(14, 'videos', 'Product Stories & Videos', 'পণ্যের ভিডিও গল্প', 'See our products in action', 'পণ্যগুলোকে ভিডিওতে দেখুন', '', 12, 'slider', '', '', '', NULL, '', '', '', 4, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_videos`
+--
+
+CREATE TABLE `product_videos` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `title_en` varchar(200) NOT NULL,
+  `title_bn` varchar(200) DEFAULT NULL,
+  `video_file` varchar(255) NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `category_id` (`category_id`),
+  KEY `status_order` (`status`,`sort_order`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1964,7 +1985,13 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `product_videos`
+--
+ALTER TABLE `product_videos`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `sliders`

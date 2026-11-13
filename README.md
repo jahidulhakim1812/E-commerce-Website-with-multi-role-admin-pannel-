@@ -15,7 +15,7 @@ Products (EN/BN, gallery, flags, cost price), categories & sub-categories, heade
 homepage sections (order, titles, product sources), offer banner image/button in the middle of the home page, hero slides, pages, testimonials, coupons, reviews,
 orders (status → customer tracking + email), customers, managers with per-section permissions, expenses / profit & loss, reports (CSV),
 visitor analytics (IP, pages, device, date/IP filters), and Settings: logo, colours, contact, floating contact icon, shipping/payment,
-SMTP credentials (Gmail App Password) with test-mail button and editable order-email template.
+SMTP setup presets for Gmail and hosting webmail, test-mail button, and editable order-email template.
 
 The Admin → Sales & Insight → Export Center downloads customer, product, subscriber, order, sales, finance, and visitor data as CSV or Word-compatible `.doc` files. Exports follow the signed-in manager's section permissions and include a selectable date range. Customer, subscriber, and visitor exports can contain personal information; handle downloaded files securely.
 
@@ -43,7 +43,7 @@ The Admin → Sales & Insight → Export Center downloads customer, product, sub
 - `update_to_latest.sql` - only for upgrading an older database (MariaDB/XAMPP).
 
 ## Notes
-- E-mail needs SMTP enabled in Admin → Settings → Email (Gmail App Password works). Bulk e-mails go to max 1000 unique recipients per send.
+- E-mail needs SMTP enabled in Admin → Settings → Email. Use a Gmail App Password or your hosting mailbox credentials and SMTP hostname; presets and a test-mail button are provided. Bulk e-mails go to max 1000 unique recipients per send.
 - Visitor IPs are tracked for analytics (Admin → Visitor Analytics). Staff visits and bots are not counted.
 - Revenue = confirmed/processing/shipped/delivered orders; profit uses each product's cost price at order time.
 - Online card/bKash/Nagad gateways are manual (customer pays and writes the transaction ID).

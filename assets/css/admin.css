@@ -143,3 +143,21 @@ button:focus-visible,.abtn:focus-visible,.icon-btn:focus-visible,.tabs-a a:focus
 .profile-menu>a.logout-link{color:#c0392b}
 .profile-menu>a.logout-link>span{color:#c0392b}
 @media(max-width:900px){.profile-dropdown .me-info,.profile-dropdown .me-caret{display:none}.profile-menu{right:0;top:calc(100% + 8px)}}
+.admin-video-preview{display:block;width:min(240px,100%);max-height:360px;aspect-ratio:9/16;object-fit:cover;background:#111;border-radius:12px;margin:0 0 12px}
+.video-table{min-width:760px}
+.video-table th,.video-table td{vertical-align:middle}
+.video-table th:first-child,.video-table td:first-child{width:100px}
+.video-table th:nth-child(4),.video-table td.video-position{width:90px;text-align:center}
+.video-table th:nth-child(5),.video-table td.video-status{width:110px;text-align:center}
+.video-table th:last-child,.video-table td:last-child{width:150px}
+.video-table .video-title{font-weight:600}
+.admin-video-thumb{display:block;width:64px;height:90px;object-fit:cover;background:#111;border-radius:10px}
+.video-actions{display:flex;align-items:center;gap:8px}
+.video-actions form{display:flex;margin:0}
+.mail-setup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mail-setup-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}
+.mail-setup-card b{font-size:.95rem;color:var(--ph)}
+.mail-setup-card p{margin:6px 0;color:var(--muted);font-size:.84rem;line-height:1.55}
+.mail-setup-card small{display:block;color:var(--muted);font-size:.76rem}
+.mail-setup>[data-mail-preset-note]{margin:14px 0 0}
+@media(max-width:700px){.mail-setup-grid{grid-template-columns:1fr}}
