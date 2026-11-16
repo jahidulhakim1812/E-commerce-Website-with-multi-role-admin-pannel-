@@ -1,6 +1,6 @@
 <?php
 require '_layout.php'; admin_start('Customers', 'customers');
-crud(['table' => 'users', 'title' => 'Customers', 'single' => 'Customer', 'where' => "role='customer'", 'fixed' => ['role' => 'customer'], 'search' => ['name', 'email', 'phone'], 'defaults' => ['status' => 1],
+crud(['table' => 'users', 'title' => 'Customers', 'single' => 'Customer', 'where' => "role='customer'", 'fixed' => ['role' => 'customer'], 'search' => ['name', 'email', 'phone'], 'defaults' => ['status' => 1], 'action_code_required' => true,
  'fields' => [
   ['name' => 'avatar', 'label' => 'Photo', 'type' => 'image', 'list' => true],
   ['name' => 'name', 'label' => 'Full Name', 'req' => true, 'half' => true, 'list' => true, 'fmt' => fn($r) => e($r['name']) . ($r['is_guest'] ? '<span class="guesttag">from order</span>' : '')], ['name' => 'email', 'label' => 'Email', 'req' => true, 'half' => true, 'list' => true, 'fmt' => fn($r) => preg_match('/@guest\\.local$/', $r['email']) ? '—' : e($r['email'])],

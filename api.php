@@ -43,7 +43,10 @@ case 'wish':
     $id = (int)$_POST['id']; $w = $_SESSION['wish'] ?? []; $on = !in_array($id, $w); $_SESSION['wish'] = $on ? array_merge($w, [$id]) : array_values(array_diff($w, [$id])); json_out(['ok' => true, 'on' => $on]);
 case 'newsletter':
     $em = strtolower(trim($_POST['email'] ?? '')); if (!filter_var($em, FILTER_VALIDATE_EMAIL)) json_out(['ok' => false, 'msg' => LANG === 'bn' ? 'সঠিক ইমেইল দিন' : 'Please enter a valid email']);
-    q("INSERT INTO newsletter(email,token,status,source) VALUES(?,?,1,'site') ON DUPLICATE KEY UPDATE status=1", [$em, substr(bin2hex(random_bytes(12)), 0, 24)]); json_out(['ok' => true, 'msg' => t('subscribed')]);
+    q("INSERT INTO newsletter(email,token,status,source) VALUES(?,?,1,'site') ON DUPLICATE KEY UPDATE status=1", [$em, substr(bin2hex(random_bytes(12)), 0, 24)]);
+    $actor = user() ?: ['name' => 'Newsletter visitor', 'role' => 'guest'];
+    audit_activity('newsletter_subscribe', 'Subscribed to the newsletter', 'newsletter', null, $actor);
+    json_out(['ok' => true, 'msg' => t('subscribed')]);
 case 'coupon':
     $c = find_coupon($_POST['code'] ?? ''); $_SESSION['coupon'] = $c ? $c['code'] : null;
     if (!$c) json_out(['ok' => false, 'msg' => t('coupon_invalid')]);

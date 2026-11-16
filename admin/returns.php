@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Return request not found.', 'err');
     } else {
         q('UPDATE return_requests SET status=?,admin_note=? WHERE id=?', [$status, $note ?: null, $id]);
+        audit_activity('return_update', 'Updated return request #' . $id . ' to ' . $status, 'return_request', $id);
         flash('Return request updated.');
     }
     redirect('returns.php?view=' . $id);

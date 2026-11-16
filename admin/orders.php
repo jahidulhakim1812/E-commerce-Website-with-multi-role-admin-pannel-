@@ -1,5 +1,6 @@
 <?php
 require '_layout.php'; admin_start('Orders', 'orders');
+ensure_return_requests();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check(); $id = (int)$_POST['id']; $o = row('SELECT * FROM orders WHERE id=?', [$id]);
     if ($o && isset($_POST['status']) && in_array($_POST['status'], ORDER_STATUSES)) {
@@ -10,13 +11,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash($mailSent ? 'Status updated and customer notified by email.' : (S('mail_enabled') === '1' ? 'Status updated; email delivery failed. Check Settings → Email.' : 'Status updated. Email notifications are disabled.'));
         }
         if (in_array($_POST['payment_status'] ?? '', ['paid', 'unpaid'])) q('UPDATE orders SET payment_status=? WHERE id=?', [$_POST['payment_status'], $id]);
+        if ($o) audit_activity('order_update', 'Updated order ' . $o['order_no'], 'order', $id);
     }
     redirect('orders.php?view=' . $id);
 }
-if (isset($_GET['export'])) { ob_end_clean(); header('Content-Type: text/csv'); header('Content-Disposition: attachment; filename=orders-' . date('Ymd') . '.csv'); $f = fopen('php://output', 'w'); fputcsv($f, ['Order', 'Date', 'Customer', 'Phone', 'Email', 'City', 'Subtotal', 'Shipping', 'Discount', 'Total', 'Payment', 'Pay Status', 'Status']); foreach (rows('SELECT * FROM orders ORDER BY id DESC') as $o) fputcsv($f, [$o['order_no'], $o['created_at'], $o['name'], $o['phone'], $o['email'], $o['city'], $o['subtotal'], $o['shipping'], $o['discount'], $o['total'], $o['payment_method'], $o['payment_status'], $o['status']]); exit; }
+if (isset($_GET['export'])) { $exportOrders = rows('SELECT * FROM orders ORDER BY id DESC'); audit_activity('export', 'Exported ' . count($exportOrders) . ' orders to CSV', 'orders'); ob_end_clean(); header('Content-Type: text/csv'); header('Content-Disposition: attachment; filename=orders-' . date('Ymd') . '.csv'); $f = fopen('php://output', 'w'); fputcsv($f, ['Order', 'Date', 'Customer', 'Phone', 'Email', 'City', 'Subtotal', 'Shipping', 'Discount', 'Total', 'Payment', 'Pay Status', 'Status']); foreach ($exportOrders as $o) fputcsv($f, [$o['order_no'], $o['created_at'], $o['name'], $o['phone'], $o['email'], $o['city'], $o['subtotal'], $o['shipping'], $o['discount'], $o['total'], $o['payment_method'], $o['payment_status'], $o['status']]); exit; }
 if (!empty($_GET['view'])) {
     $o = row('SELECT * FROM orders WHERE id=?', [(int)$_GET['view']]); if (!$o) { echo '<p>Not found</p>'; admin_end(); exit; }
     $its = rows('SELECT * FROM order_items WHERE order_id=?', [$o['id']]); $log = rows('SELECT * FROM order_log WHERE order_id=? ORDER BY id DESC', [$o['id']]);
+    $customerHistory = !empty($o['user_id']) ? rows('SELECT rr.*,o.order_no FROM return_requests rr JOIN orders o ON o.id=rr.order_id WHERE rr.user_id=? ORDER BY rr.id DESC', [(int)$o['user_id']]) : [];
     $profit = 0; foreach ($its as $i) $profit += ($i['price'] - $i['cost']) * $i['qty']; $profit -= $o['discount'];
     echo '<div class="panel-h"><h3>Order #' . e($o['order_no']) . ' <span class="pill s-' . $o['status'] . '">' . ucfirst($o['status']) . '</span></h3><div><a class="abtn ghost" href="orders.php">← All Orders</a> <a class="abtn" target="_blank" href="../invoice.php?no=' . e($o['order_no']) . '">🖨 Invoice</a></div></div>';
     echo '<div class="grid2"><div class="panel"><h3>Items</h3><div class="table-wrap"><table class="atbl"><tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr>'; foreach ($its as $i) echo '<tr><td><img class="thumb sm" src="' . img($i['image']) . '" alt=""> ' . e($i['name']) . ($i['variant'] ? ' <span class="pill">' . e($i['variant']) . '</span>' : '') . '</td><td>' . money($i['price']) . '</td><td>' . $i['qty'] . '</td><td>' . money($i['price'] * $i['qty']) . '</td></tr>';
@@ -25,16 +28,40 @@ if (!empty($_GET['view'])) {
     <form method="post" class="aform">' . csrf_field() . '<input type="hidden" name="id" value="' . $o['id'] . '"><div class="fld"><label>Order Status</label><select name="status">'; foreach (ORDER_STATUSES as $s) echo '<option ' . ($o['status'] === $s ? 'selected' : '') . ' value="' . $s . '">' . ucfirst($s) . '</option>';
     echo '</select></div><div class="fld"><label>Payment Status</label><select name="payment_status"><option value="unpaid" ' . ($o['payment_status'] === 'unpaid' ? 'selected' : '') . '>Unpaid</option><option value="paid" ' . ($o['payment_status'] === 'paid' ? 'selected' : '') . '>Paid</option></select></div><div class="fld"><label>Note (saved in tracking history)</label><input name="note"></div><button class="abtn">Update &amp; Notify Customer</button></form></div></div>';
     echo '<div class="panel"><h3>Tracking History</h3>'; foreach ($log as $l) echo '<div class="logrow"><span class="pill s-' . $l['status'] . '">' . ucfirst($l['status']) . '</span> ' . e($l['note']) . ' <small class="muted">' . date('d M Y h:i A', strtotime($l['created_at'])) . '</small></div>'; echo '</div>';
+    echo '<div class="panel" id="customer-history"><h3>Customer Parcel Return History</h3>';
+    if (!$customerHistory) echo '<p class="muted">No parcel return requests found for this customer.</p>';
+    else {
+        echo '<div class="table-wrap"><table class="atbl"><tr><th>Date</th><th>Order</th><th>Product</th><th>Status</th><th>Reason</th><th>Admin Note</th></tr>';
+        foreach ($customerHistory as $request) echo '<tr><td>' . date('d M Y', strtotime($request['created_at'])) . '</td><td><a href="orders.php?view=' . (int)$request['order_id'] . '">' . e($request['order_no']) . '</a></td><td>' . e($request['product_name']) . ($request['product_variant'] ? ' · ' . e($request['product_variant']) : '') . '</td><td><span class="pill s-' . e($request['status']) . '">' . ucfirst(e($request['status'])) . '</span></td><td>' . e($request['reason']) . '</td><td>' . e($request['admin_note'] ?: '—') . '</td></tr>';
+        echo '</table></div>';
+    }
+    echo '</div>';
     admin_end(); exit;
 }
 $st = $_GET['status'] ?? ''; $qv = trim($_GET['q'] ?? ''); $df = $_GET['from'] ?? ''; $dt = $_GET['to'] ?? ''; $w = ['1=1']; $a = [];
 if (in_array($st, ORDER_STATUSES)) { $w[] = 'status=?'; $a[] = $st; } if ($qv !== '') { $w[] = '(order_no LIKE ? OR name LIKE ? OR phone LIKE ?)'; array_push($a, "%$qv%", "%$qv%", "%$qv%"); }
 if ($df) { $w[] = 'DATE(created_at)>=?'; $a[] = $df; } if ($dt) { $w[] = 'DATE(created_at)<=?'; $a[] = $dt; }
 $W = implode(' AND ', $w); $per = 20; $pg = max(1, (int)($_GET['page'] ?? 1)); $tot = (int)val("SELECT COUNT(*) FROM orders WHERE $W", $a); $rs = rows("SELECT * FROM orders WHERE $W ORDER BY id DESC LIMIT $per OFFSET " . (($pg - 1) * $per), $a);
+$customerHistorySummary = []; $customerIds = [];
+foreach ($rs as $order) if (!empty($order['user_id'])) $customerIds[(int)$order['user_id']] = (int)$order['user_id'];
+if ($customerIds) {
+    $placeholders = implode(',', array_fill(0, count($customerIds), '?'));
+    foreach (rows("SELECT user_id,status,COUNT(*) AS request_count FROM return_requests WHERE user_id IN ($placeholders) GROUP BY user_id,status", array_values($customerIds)) as $request) {
+        $userId = (int)$request['user_id'];
+        $customerHistorySummary[$userId]['total'] = ($customerHistorySummary[$userId]['total'] ?? 0) + (int)$request['request_count'];
+        $customerHistorySummary[$userId]['statuses'][] = ucfirst($request['status']) . ': ' . (int)$request['request_count'];
+    }
+}
 $counts = array_column(rows('SELECT status,COUNT(*) c FROM orders GROUP BY status'), 'c', 'status');
 echo '<div class="tabs-a"><a class="' . (!$st ? 'on' : '') . '" href="orders.php">All (' . array_sum($counts) . ')</a>'; foreach (ORDER_STATUSES as $s) echo '<a class="' . ($st === $s ? 'on' : '') . '" href="?status=' . $s . '">' . ucfirst($s) . ' (' . ($counts[$s] ?? 0) . ')</a>'; echo '</div>';
-echo '<div class="panel"><div class="panel-h"><h3>Orders <small>(' . $tot . ')</small></h3><form class="filt"><input type="hidden" name="status" value="' . e($st) . '"><input name="q" value="' . e($qv) . '" placeholder="Order no / name / phone"><input type="date" name="from" value="' . e($df) . '"><input type="date" name="to" value="' . e($dt) . '"><button class="abtn sm">Filter</button><a class="abtn sm ghost" href="?export=1">⬇ CSV</a></form></div><div class="table-wrap"><table class="atbl"><tr><th>Order</th><th>Date</th><th>Customer</th><th>Phone</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr>';
-foreach ($rs as $o) echo '<tr><td class="mono">' . e($o['order_no']) . '</td><td>' . date('d M Y', strtotime($o['created_at'])) . '</td><td>' . e($o['name']) . '</td><td>' . e($o['phone']) . '</td><td>' . money($o['total']) . '</td><td><span class="pill ' . ($o['payment_status'] === 'paid' ? 's-delivered' : 's-pending') . '">' . e(strtoupper($o['payment_method'])) . ' · ' . $o['payment_status'] . '</span></td><td><span class="pill s-' . $o['status'] . '">' . ucfirst($o['status']) . '</span></td><td><a class="abtn sm" href="?view=' . $o['id'] . '">View</a></td></tr>';
-if (!$rs) echo '<tr><td colspan="8" class="empty">No orders found.</td></tr>'; echo '</table></div>';
+echo '<div class="panel"><div class="panel-h"><h3>Orders <small>(' . $tot . ')</small></h3><form class="filt"><input type="hidden" name="status" value="' . e($st) . '"><input name="q" value="' . e($qv) . '" placeholder="Order no / name / phone"><input type="date" name="from" value="' . e($df) . '"><input type="date" name="to" value="' . e($dt) . '"><button class="abtn sm">Filter</button><a class="abtn sm ghost" href="?export=1">⬇ CSV</a></form></div><div class="table-wrap"><table class="atbl"><tr><th>Order</th><th>Date</th><th>Customer</th><th>Phone</th><th>Total</th><th>Payment</th><th>Status</th><th>Customer History</th><th></th></tr>';
+foreach ($rs as $o) {
+    $summary = $customerHistorySummary[(int)$o['user_id']] ?? null;
+    $historyCell = $summary
+        ? '<a href="orders.php?view=' . (int)$o['id'] . '#customer-history">' . (int)$summary['total'] . ' return(s) · ' . e(implode(', ', $summary['statuses'])) . '</a>'
+        : '<span class="muted">No returns</span>';
+    echo '<tr><td class="mono">' . e($o['order_no']) . '</td><td>' . date('d M Y', strtotime($o['created_at'])) . '</td><td>' . e($o['name']) . '</td><td>' . e($o['phone']) . '</td><td>' . money($o['total']) . '</td><td><span class="pill ' . ($o['payment_status'] === 'paid' ? 's-delivered' : 's-pending') . '">' . e(strtoupper($o['payment_method'])) . ' · ' . $o['payment_status'] . '</span></td><td><span class="pill s-' . $o['status'] . '">' . ucfirst($o['status']) . '</span></td><td>' . $historyCell . '</td><td><a class="abtn sm" href="?view=' . $o['id'] . '">View</a></td></tr>';
+}
+if (!$rs) echo '<tr><td colspan="9" class="empty">No orders found.</td></tr>'; echo '</table></div>';
 $pages = max(1, ceil($tot / $per)); if ($pages > 1) { echo '<div class="pager">'; for ($i = 1; $i <= $pages; $i++) echo '<a class="' . ($i == $pg ? 'on' : '') . '" href="?' . http_build_query(array_merge($_GET, ['page' => $i])) . '">' . $i . '</a>'; echo '</div>'; } echo '</div>';
 admin_end();

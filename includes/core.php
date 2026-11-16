@@ -120,10 +120,59 @@ function ensure_product_videos() {
 
 /* ---------- Auth ---------- */
 function user() { static $u = false; if ($u === false) { $u = null; if (!empty($_SESSION['uid'])) { $u = row('SELECT * FROM users WHERE id=? AND status=1', [$_SESSION['uid']]); if (!$u) unset($_SESSION['uid']); } } return $u; }
-function login_user($u) { session_regenerate_id(true); $_SESSION['uid'] = $u['id']; q('UPDATE users SET last_login=NOW() WHERE id=?', [$u['id']]); }
+function login_user($u) { session_regenerate_id(true); $_SESSION['uid'] = $u['id']; q('UPDATE users SET last_login=NOW() WHERE id=?', [$u['id']]); audit_activity('login', 'Signed in', 'user', (int)$u['id'], $u); }
 function require_login() { if (!user()) { $_SESSION['back'] = $_SERVER['REQUEST_URI']; redirect('login.php'); } }
 function is_staff() { $u = user(); return $u && in_array($u['role'], ['admin', 'manager']); }
 function can($perm) { $u = user(); if (!$u) return false; if ($u['role'] === 'admin') return true; if ($u['role'] !== 'manager') return false; return in_array($perm, array_filter(explode(',', $u['perms']))); }
+function ensure_activity_logs() {
+    static $ready = false;
+    if ($ready) return;
+    q("CREATE TABLE IF NOT EXISTS activity_logs (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        actor_user_id INT DEFAULT NULL,
+        actor_name VARCHAR(120) NOT NULL,
+        actor_role VARCHAR(20) NOT NULL,
+        action_type VARCHAR(40) NOT NULL,
+        description TEXT NOT NULL,
+        target_type VARCHAR(50) DEFAULT NULL,
+        target_id INT DEFAULT NULL,
+        ip VARCHAR(45) DEFAULT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY actor_user_id (actor_user_id),
+        KEY actor_role (actor_role),
+        KEY action_type (action_type),
+        KEY created_at (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    $ready = true;
+}
+function audit_activity($action, $description, $targetType = null, $targetId = null, $actor = null) {
+    ensure_activity_logs();
+    if (!is_array($actor)) $actor = user();
+    $actorId = is_array($actor) && isset($actor['id']) ? (int)$actor['id'] : null;
+    $actorName = is_array($actor) ? ($actor['name'] ?? 'Unknown') : 'Guest';
+    $actorRole = is_array($actor) ? ($actor['role'] ?? 'unknown') : 'guest';
+    q('INSERT INTO activity_logs(actor_user_id,actor_name,actor_role,action_type,description,target_type,target_id,ip) VALUES(?,?,?,?,?,?,?,?)', [
+        $actorId, mb_substr((string)$actorName, 0, 120), mb_substr((string)$actorRole, 0, 20),
+        mb_substr((string)$action, 0, 40), (string)$description,
+        $targetType === null ? null : mb_substr((string)$targetType, 0, 50),
+        $targetId === null ? null : (int)$targetId, client_ip()
+    ]);
+}
+function ensure_manager_action_code() {
+    static $ready = false;
+    if ($ready) return;
+    if (!(int)val("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='manager_action_code_hash'")) q('ALTER TABLE users ADD COLUMN manager_action_code_hash VARCHAR(255) DEFAULT NULL');
+    $ready = true;
+}
+function manager_action_code_valid($code) {
+    $u = user();
+    if (!$u || $u['role'] !== 'manager') return true;
+    if (!is_string($code) || $code === '') return false;
+    ensure_manager_action_code();
+    $hash = val('SELECT manager_action_code_hash FROM users WHERE id=?', [$u['id']]);
+    return is_string($hash) && $hash !== '' && password_verify($code, $hash);
+}
 
 /* ---------- Visitors ---------- */
 function track_visit() {

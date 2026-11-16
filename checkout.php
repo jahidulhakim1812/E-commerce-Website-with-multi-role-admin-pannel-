@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$name || !$phone || !$addr || ($email && !filter_var($email, FILTER_VALIDATE_EMAIL))) flash(t('required'), 'err');
     elseif (!$zone) flash(t('zone_required'), 'err');
     else {
+        ensure_activity_logs();
         $pdo = db(); $pdo->beginTransaction();
         try {
             foreach ($t['lines'] as $l) {
@@ -22,6 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $no = 'DN' . date('ymd') . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
             q('INSERT INTO orders(order_no,user_id,name,phone,email,address,city,subtotal,shipping,discount,total,coupon,delivery_zone,payment_method,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [$no, $uid, $name, $phone, $email, $addr, $city, $t['subtotal'], $t['shipping'], $t['discount'], $t['total'], $coupon['code'] ?? null, $zone, $pm, trim($_POST['note'] ?? '')]);
             $oid = (int)$pdo->lastInsertId();
+            $actor = row('SELECT id,name,role FROM users WHERE id=?', [$uid]);
+            audit_activity('order_placed', 'Placed order ' . $no, 'order', $oid, $actor);
             foreach ($t['lines'] as $l) {
                 $p = $l['p']; $v = $l['v'];
                 q('INSERT INTO order_items(order_id,product_id,variant_id,variant,name,price,cost,qty,image) VALUES(?,?,?,?,?,?,?,?,?)', [$oid, $p['id'], $v['id'] ?? 0, $v['label_en'] ?? '', $p['name_en'], $l['price'], $l['cost'], $l['qty'], $p['image']]);

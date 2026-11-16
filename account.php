@@ -3,8 +3,8 @@ require_once 'includes/core.php'; require_login(); $u = user();
 if ($u['role'] !== 'customer') { /* staff may still view their own customer page */ }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
-    if (isset($_POST['profile'])) { $av = !empty($_POST['rm_avatar']) ? '' : upload_image('avatar', $u['avatar'] ?? ''); q('UPDATE users SET name=?,phone=?,address=?,city=?,avatar=? WHERE id=?', [trim($_POST['name']), trim($_POST['phone']), trim($_POST['address']), trim($_POST['city']), $av, $u['id']]); flash(t('saved')); }
-    if (isset($_POST['pass'])) { if (!password_verify($_POST['cur'] ?? '', $u['password'])) flash(t('wrong_password'), 'err'); elseif (strlen($_POST['new'] ?? '') < 6) flash(t('required'), 'err'); else { q('UPDATE users SET password=? WHERE id=?', [password_hash($_POST['new'], PASSWORD_DEFAULT), $u['id']]); flash(t('saved')); } }
+    if (isset($_POST['profile'])) { $av = !empty($_POST['rm_avatar']) ? '' : upload_image('avatar', $u['avatar'] ?? ''); q('UPDATE users SET name=?,phone=?,address=?,city=?,avatar=? WHERE id=?', [trim($_POST['name']), trim($_POST['phone']), trim($_POST['address']), trim($_POST['city']), $av, $u['id']]); audit_activity('profile_update', 'Updated account profile', 'user', (int)$u['id'], $u); flash(t('saved')); }
+    if (isset($_POST['pass'])) { if (!password_verify($_POST['cur'] ?? '', $u['password'])) flash(t('wrong_password'), 'err'); elseif (strlen($_POST['new'] ?? '') < 6) flash(t('required'), 'err'); else { q('UPDATE users SET password=? WHERE id=?', [password_hash($_POST['new'], PASSWORD_DEFAULT), $u['id']]); audit_activity('password_change', 'Changed account password', 'user', (int)$u['id'], $u); flash(t('saved')); } }
     redirect('account.php?tab=profile');
 }
 $tab = $_GET['tab'] ?? 'orders'; $page_title = t('my_account'); require 'includes/header.php';

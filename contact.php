@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/core.php'; $sent = false;
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { csrf_check(); if (trim($_POST['message'] ?? '') && trim($_POST['name'] ?? '')) { q('INSERT INTO contact_messages(name,email,phone,message) VALUES(?,?,?,?)', [trim($_POST['name']), trim($_POST['email'] ?? ''), trim($_POST['phone'] ?? ''), trim($_POST['message'])]); @send_mail(S('admin_email'), 'New contact message from ' . $_POST['name'], nl2br(e($_POST['message'])) . '<br>' . e($_POST['email'] ?? '') . ' ' . e($_POST['phone'] ?? '')); $sent = true; } }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { csrf_check(); if (trim($_POST['message'] ?? '') && trim($_POST['name'] ?? '')) { q('INSERT INTO contact_messages(name,email,phone,message) VALUES(?,?,?,?)', [trim($_POST['name']), trim($_POST['email'] ?? ''), trim($_POST['phone'] ?? ''), trim($_POST['message'])]); $actor = user() ?: ['name' => trim($_POST['name']), 'role' => 'guest']; audit_activity('contact_message', 'Sent a contact message', 'contact_message', (int)db()->lastInsertId(), $actor); @send_mail(S('admin_email'), 'New contact message from ' . $_POST['name'], nl2br(e($_POST['message'])) . '<br>' . e($_POST['email'] ?? '') . ' ' . e($_POST['phone'] ?? '')); $sent = true; } }
 $page_title = t('contact_us'); require 'includes/header.php'; ?>
 <div class="container sec"><h1 class="page-title"><?= t('contact_us') ?></h1><div class="two">
 <div class="card-flat"><p>📞 <?= e(S('phone')) ?></p><p>✉️ <?= e(S('email')) ?></p><p>📍 <?= e(sx('address')) ?></p></div>

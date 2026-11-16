@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 13, 2026 at 01:49 PM
+-- Generation Time: Nov 16, 2026 at 06:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,36 @@ SET time_zone = "+00:00";
 --
 -- Database: `drynutri`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `activity_logs`
+--
+
+CREATE TABLE `activity_logs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `actor_user_id` int(11) DEFAULT NULL,
+  `actor_name` varchar(120) NOT NULL,
+  `actor_role` varchar(20) NOT NULL,
+  `action_type` varchar(40) NOT NULL,
+  `description` text NOT NULL,
+  `target_type` varchar(50) DEFAULT NULL,
+  `target_id` int(11) DEFAULT NULL,
+  `ip` varchar(45) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `activity_logs`
+--
+
+INSERT INTO `activity_logs` (`id`, `actor_user_id`, `actor_name`, `actor_role`, `action_type`, `description`, `target_type`, `target_id`, `ip`, `created_at`) VALUES
+(1, 1, 'Super Admin', 'admin', 'page_view', 'Viewed Managers & Roles (managers.php)', 'admin_page', NULL, '::1', '2026-11-16 23:22:01'),
+(2, 1, 'Super Admin', 'admin', 'page_view', 'Viewed Activity Log (activity_log.php)', 'admin_page', NULL, '::1', '2026-11-16 23:22:06'),
+(3, 1, 'Super Admin', 'admin', 'page_view', 'Viewed Activity Log (activity_log.php)', 'admin_page', NULL, '::1', '2026-11-16 23:22:19'),
+(4, 1, 'Super Admin', 'admin', 'page_view', 'Viewed Activity Log (activity_log.php)', 'admin_page', NULL, '::1', '2026-11-16 23:22:22'),
+(5, 1, 'Super Admin', 'admin', 'page_view', 'Viewed Dashboard (index.php)', 'admin_page', NULL, '::1', '2026-11-16 23:22:32');
 
 -- --------------------------------------------------------
 
@@ -127,7 +157,7 @@ INSERT INTO `checkout_visits` (`id`, `sid`, `user_id`, `name`, `phone`, `email`,
 (8, '8f14e45fceea167a5a36dedd4bea2543', 0, '', '01711999000', '', 'Uttara, Dhaka', '103.57.26.151', 'mobile', '[{\"n\": \"Dried Mango Slices 250g\", \"v\": \"125 g\", \"q\": 2, \"p\": 210}]', 420.00, 2, 'visited', 0, 0, '2026-10-29 19:00:00', '2026-10-29 19:02:00'),
 (9, '108fc0999e244d1d53a6ffd0fb599ae3', 1, 'Super Admin', '', 'admin@drynutri.com', '', '::1', 'desktop', '[{\"n\":\"Tropical Trail Mix 300g\",\"v\":\"300 g\",\"q\":1,\"p\":520}]', 520.00, 1, 'visited', 0, 0, '2026-11-11 12:47:07', '2026-11-11 12:47:07'),
 (13, '496a7fe97add6ecba3cd5c2fcb6fe8c0', 13, 'Md. Jahidul Hakim', '01837090666', 'mdjhk19@gmail.com', 'Dhaka,Gazipur,Boardbazar,National university,', '::1', 'desktop', '[{\"n\":\"Premium Cashew Nuts 500g\",\"v\":\"100 g\",\"q\":1,\"p\":180}]', 180.00, 1, 'ordered', 31, 0, '2026-11-11 18:33:39', '2026-11-11 19:23:47'),
-(20, 'f3a1ef9d1c112a98bcbf613cf8d1ff3f', 1, 'Md. Jahidul Hakim', '01837090666', 'mdjhk19@gmail.com', 'Dhaka,Gazipur,Boardbazar,National university,', '::1', 'desktop', '[{\"n\":\"Tropical Trail Mix 300g\",\"v\":\"60 g\",\"q\":1,\"p\":145}]', 145.00, 1, 'visited', 0, 0, '2026-11-11 19:27:12', '2026-11-12 20:59:34');
+(20, 'f3a1ef9d1c112a98bcbf613cf8d1ff3f', 14, 'Nabil', '1kjggskjgsgksg', 'admin@nabil.com', 'rtertetetetet', '::1', 'desktop', '[{\"n\":\"Premium Almonds 500g\",\"v\":\"100 g\",\"q\":1,\"p\":175}]', 175.00, 1, 'ordered', 32, 1, '2026-11-11 19:27:12', '2026-11-15 22:34:10');
 
 -- --------------------------------------------------------
 
@@ -417,7 +447,8 @@ INSERT INTO `orders` (`id`, `order_no`, `user_id`, `name`, `phone`, `email`, `ad
 (28, 'DN261016D028', 4, 'Md. Hasan', '01811000003', 'md.@example.com', 'House 12, Road 5', 'Chattogram', 835.00, 60.00, 0.00, 895.00, NULL, 'inside', 'cod', 'unpaid', 'confirmed', NULL, '2026-10-16 09:00:00'),
 (29, 'DN261104D029', 8, 'Ahmed Karim', '01711000007', 'ahmed@example.com', 'House 12, Road 5', 'Dhaka', 780.00, 60.00, 0.00, 840.00, NULL, 'inside', 'nagad', 'paid', 'shipped', NULL, '2026-11-04 23:00:00'),
 (30, 'DN261027D030', 8, 'Ahmed Karim', '01711000007', 'ahmed@example.com', 'House 12, Road 5', 'Dhaka', 465.00, 60.00, 0.00, 525.00, NULL, 'inside', 'cod', 'paid', 'delivered', NULL, '2026-10-27 12:00:00'),
-(31, 'DN26111133670', 13, 'Md. Jahidul Hakim', '01837090666', 'mdjhk19@gmail.com', 'Dhaka,Gazipur,Boardbazar,National university,', 'Gazipur', 180.00, 60.00, 0.00, 240.00, NULL, 'inside', 'cod', 'unpaid', 'processing', '', '2026-11-11 19:23:47');
+(31, 'DN26111133670', 13, 'Md. Jahidul Hakim', '01837090666', 'mdjhk19@gmail.com', 'Dhaka,Gazipur,Boardbazar,National university,', 'Gazipur', 180.00, 60.00, 0.00, 240.00, NULL, 'inside', 'cod', 'unpaid', 'processing', '', '2026-11-11 19:23:47'),
+(32, 'DN261115B81D4', 14, 'Nabil', '1kjggskjgsgksg', 'admin@nabil.com', 'rtertetetetet', '', 175.00, 60.00, 0.00, 235.00, NULL, 'inside', 'cod', 'unpaid', 'pending', '', '2026-11-15 22:34:10');
 
 -- --------------------------------------------------------
 
@@ -510,7 +541,8 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `varian
 (65, 29, 7, 21, '50 g', 'Dried Pineapple Rings 250g', 120.00, 81.00, 3, NULL),
 (66, 30, 17, 49, '200 g', 'Dried Cranberries 200g', 340.00, 230.00, 1, NULL),
 (67, 30, 10, 30, '200 g', 'Premium Dates 1kg', 125.00, 90.00, 1, NULL),
-(68, 31, 15, 45, '100 g', 'Premium Cashew Nuts 500g', 180.00, 134.00, 1, NULL);
+(68, 31, 15, 45, '100 g', 'Premium Cashew Nuts 500g', 180.00, 134.00, 1, NULL),
+(69, 32, 16, 48, '100 g', 'Premium Almonds 500g', 175.00, 126.00, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -634,7 +666,8 @@ INSERT INTO `order_log` (`id`, `order_id`, `status`, `note`, `created_at`) VALUE
 (101, 30, 'delivered', 'Demo data', '2026-10-28 12:00:00'),
 (102, 26, 'shipped', 'Updated by Super Admin', '2026-11-11 16:06:47'),
 (103, 31, 'pending', 'Order placed', '2026-11-11 19:23:47'),
-(104, 31, 'processing', 'Updated by Super Admin', '2026-11-11 19:28:38');
+(104, 31, 'processing', 'Updated by Super Admin', '2026-11-11 19:28:38'),
+(105, 32, 'pending', 'Order placed', '2026-11-15 22:34:10');
 
 -- --------------------------------------------------------
 
@@ -754,7 +787,7 @@ INSERT INTO `products` (`id`, `category_id`, `name_en`, `name_bn`, `slug`, `shor
 (13, 8, 'Mixed Dried Fruit Pack 400g', 'মিক্সড শুকনো ফল ৪০০গ্রাম', 'mixed-dried-fruit-400g', 'Mango, orange, banana, pineapple & more.', 'আম, কমলা, কলা, আনারসসহ আরও অনেক ফল।', 'Mango, orange, banana, pineapple & more. Naturally dried, no preservatives, packed fresh.', 'আম, কমলা, কলা, আনারসসহ আরও অনেক ফল। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 155.00, 180.00, 112.00, 90, '80 g', 'DryNutri', 'best', 1, NULL, NULL, 1, 4.90, 33, 267, '2026-11-11 10:58:20'),
 (14, 8, 'Dried Apricot 250g', 'শুকনো এপ্রিকট ২৫০গ্রাম', 'dried-apricot-250g', 'Sun-dried apricots with no added sugar.', 'চিনি ছাড়া রোদে শুকানো এপ্রিকট।', 'Sun-dried apricots with no added sugar. Naturally dried, no preservatives, packed fresh.', 'চিনি ছাড়া রোদে শুকানো এপ্রিকট। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 105.00, 125.00, 76.00, 78, '50 g', 'DryNutri', '', 0, NULL, NULL, 1, 4.50, 6, 55, '2026-11-11 10:58:20'),
 (15, 13, 'Premium Cashew Nuts 500g', 'প্রিমিয়াম কাজুবাদাম ৫০০গ্রাম', 'premium-cashew-nuts-500g', 'Crunchy, creamy and naturally sweet.', 'মচমচে, ক্রিমি ও প্রাকৃতিক মিষ্টি।', 'Crunchy, creamy and naturally sweet. Naturally dried, no preservatives, packed fresh.', 'মচমচে, ক্রিমি ও প্রাকৃতিক মিষ্টি। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 180.00, 210.00, 134.00, 119, '100 g', 'DryNutri', 'best', 1, NULL, NULL, 1, 4.80, 25, 253, '2026-11-11 10:58:20'),
-(16, 14, 'Premium Almonds 500g', 'প্রিমিয়াম কাঠবাদাম ৫০০গ্রাম', 'premium-almonds-500g', 'Fresh almonds rich in vitamin E.', 'ভিটামিন ই সমৃদ্ধ তাজা কাঠবাদাম।', 'Fresh almonds rich in vitamin E. Naturally dried, no preservatives, packed fresh.', 'ভিটামিন ই সমৃদ্ধ তাজা কাঠবাদাম। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 175.00, 195.00, 126.00, 90, '100 g', 'DryNutri', '', 1, NULL, NULL, 1, 4.80, 18, 191, '2026-11-11 10:58:20'),
+(16, 14, 'Premium Almonds 500g', 'প্রিমিয়াম কাঠবাদাম ৫০০গ্রাম', 'premium-almonds-500g', 'Fresh almonds rich in vitamin E.', 'ভিটামিন ই সমৃদ্ধ তাজা কাঠবাদাম।', 'Fresh almonds rich in vitamin E. Naturally dried, no preservatives, packed fresh.', 'ভিটামিন ই সমৃদ্ধ তাজা কাঠবাদাম। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 175.00, 195.00, 126.00, 89, '100 g', 'DryNutri', '', 1, NULL, NULL, 1, 4.80, 18, 192, '2026-11-11 10:58:20'),
 (17, 4, 'Dried Cranberries 200g', 'শুকনো ক্র্যানবেরি ২০০গ্রাম', 'dried-cranberries-200g', 'Ruby-red cranberries for snacking and baking.', 'স্ন্যাক ও বেকিংয়ের জন্য লাল ক্র্যানবেরি।', 'Ruby-red cranberries for snacking and baking. Naturally dried, no preservatives, packed fresh.', 'স্ন্যাক ও বেকিংয়ের জন্য লাল ক্র্যানবেরি। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 95.00, 110.00, 64.00, 75, '40 g', 'DryNutri', '', 0, NULL, NULL, 1, 4.50, 8, 68, '2026-11-11 10:58:20'),
 (18, 8, 'Tropical Trail Mix 300g', 'ট্রপিক্যাল ট্রেইল মিক্স ৩০০গ্রাম', 'tropical-trail-mix-300g', 'Dried fruit, nuts and seeds energy mix.', 'শুকনো ফল, বাদাম ও বীজের এনার্জি মিক্স।', 'Dried fruit, nuts and seeds energy mix. Naturally dried, no preservatives, packed fresh.', 'শুকনো ফল, বাদাম ও বীজের এনার্জি মিক্স। প্রাকৃতিকভাবে শুকানো, কোনো প্রিজারভেটিভ নেই।', 145.00, 170.00, 101.00, 54, '60 g', 'DryNutri', 'best', 0, '261111-22cca3de1e.png', '261111-0fe2a09db7.png,261111-ccbe7d8489.png,261111-f9317b1f94.png', 1, 4.80, 16, 137, '2026-11-11 10:58:20');
 
@@ -830,7 +863,7 @@ INSERT INTO `product_variants` (`id`, `product_id`, `label_en`, `label_bn`, `gra
 (45, 15, '100 g', '১০০ গ্রাম', 100, 180.00, 210.00, 134.00, 39, 3, 1),
 (46, 16, '500 g', '৫০০ গ্রাম', 500, 620.00, 700.00, 450.00, 30, 1, 1),
 (47, 16, '250 g', '২৫০ গ্রাম', 250, 340.00, 385.00, 248.00, 30, 2, 1),
-(48, 16, '100 g', '১০০ গ্রাম', 100, 175.00, 195.00, 126.00, 30, 3, 1),
+(48, 16, '100 g', '১০০ গ্রাম', 100, 175.00, 195.00, 126.00, 29, 3, 1),
 (49, 17, '200 g', '২০০ গ্রাম', 200, 340.00, 400.00, 230.00, 25, 1, 1),
 (50, 17, '100 g', '১০০ গ্রাম', 100, 185.00, 220.00, 127.00, 25, 2, 1),
 (51, 17, '40 g', '৪০ গ্রাম', 40, 95.00, 110.00, 64.00, 25, 3, 1),
@@ -884,7 +917,7 @@ CREATE TABLE `push_subscriptions` (
 --
 
 INSERT INTO `push_subscriptions` (`id`, `endpoint_hash`, `endpoint`, `public_key`, `auth_token`, `content_encoding`, `created_at`, `updated_at`) VALUES
-(1, '3b41d4586da49201d251b23cb3a3020455a5c0ad12ac2073855041ee8aad0342', 'https://fcm.googleapis.com/fcm/send/fr8Q2jZqODE:APA91bGPtVNK86t8xKzbr90562cxEdECEobg-C96hycyrnqCMGtQK22mZyNZEFB7ctnYO69hnP5kQqPnkD4bsdBvNw9eBDOtfluRYIXD5RHqZxtsdl0k1RK4K1kyNFZAiE7Zktgv4iJS', 'BGE_lBl0kNqVPGNL8xf8JxQx1WgR8F7LjENs29E6oBNscu_9yz1MYrH8uQGmfyD60krUH9p2Qz_K67q15hyj6fw', 'qJSyjupfK0M6ww3_6CplHQ', 'aes128gcm', '2026-11-11 19:09:09', '2026-11-13 18:47:45');
+(1, '3b41d4586da49201d251b23cb3a3020455a5c0ad12ac2073855041ee8aad0342', 'https://fcm.googleapis.com/fcm/send/fr8Q2jZqODE:APA91bGPtVNK86t8xKzbr90562cxEdECEobg-C96hycyrnqCMGtQK22mZyNZEFB7ctnYO69hnP5kQqPnkD4bsdBvNw9eBDOtfluRYIXD5RHqZxtsdl0k1RK4K1kyNFZAiE7Zktgv4iJS', 'BGE_lBl0kNqVPGNL8xf8JxQx1WgR8F7LjENs29E6oBNscu_9yz1MYrH8uQGmfyD60krUH9p2Qz_K67q15hyj6fw', 'qJSyjupfK0M6ww3_6CplHQ', 'aes128gcm', '2026-11-11 19:09:09', '2026-11-16 23:22:33');
 
 -- --------------------------------------------------------
 
@@ -913,7 +946,8 @@ CREATE TABLE `return_requests` (
 --
 
 INSERT INTO `return_requests` (`id`, `user_id`, `order_id`, `order_item_id`, `product_name`, `product_variant`, `product_image`, `proof_image`, `reason`, `status`, `admin_note`, `created_at`, `updated_at`) VALUES
-(1, 13, 31, 68, 'Premium Cashew Nuts 500g', '100 g', NULL, '261111-1c153b046f.jpg', 'hhhdhd', 'pending', NULL, '2026-11-11 19:25:04', '2026-11-11 19:25:04');
+(1, 13, 31, 68, 'Premium Cashew Nuts 500g', '100 g', NULL, '261111-1c153b046f.jpg', 'hhhdhd', 'pending', NULL, '2026-11-11 19:25:04', '2026-11-11 19:25:04'),
+(2, 14, 32, 69, 'Premium Almonds 500g', '100 g', NULL, '261115-e9370c1af1.jpg', 'iyriiir', 'completed', NULL, '2026-11-15 22:34:50', '2026-11-15 22:35:39');
 
 -- --------------------------------------------------------
 
@@ -1151,27 +1185,29 @@ CREATE TABLE `users` (
   `is_guest` tinyint(1) NOT NULL DEFAULT 0,
   `status` tinyint(1) NOT NULL DEFAULT 1,
   `last_login` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp()
+  `created_at` datetime DEFAULT current_timestamp(),
+  `manager_action_code_hash` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `perms`, `address`, `city`, `avatar`, `is_guest`, `status`, `last_login`, `created_at`) VALUES
-(1, 'Super Admin', 'admin@drynutri.com', '', '$2y$10$FL.nLMxQh/wBVjMFvin0juvWDbFalWbMY.zfJPhYdiNl1fAnyFpf.', 'admin', '', NULL, NULL, '261111-c3b001b969.jpg', 0, 1, '2026-11-13 18:21:13', '2026-11-11 10:58:20'),
-(2, 'Rahim Ahmed', 'guest-2171ab8530ff@guest.local', '01711000001', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-11 12:00:00'),
-(3, 'Fatema Akter', 'guest-9bda39f7e671@guest.local', '01711000002', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Uttara', NULL, 1, 1, NULL, '2026-10-12 12:00:00'),
-(4, 'Md. Hasan', 'guest-4b678c41df36@guest.local', '01811000003', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Chattogram', NULL, 1, 1, NULL, '2026-10-13 12:00:00'),
-(5, 'Nusrat Jahan', 'guest-1393053fbda8@guest.local', '01911000004', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-14 12:00:00'),
-(6, 'Tariqul Islam', 'guest-ab88850e22a5@guest.local', '01611000005', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Sylhet', NULL, 1, 1, NULL, '2026-10-15 12:00:00'),
-(7, 'Sabrina Rahman', 'guest-c61220e50c95@guest.local', '01511000006', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Gazipur', NULL, 1, 1, NULL, '2026-10-16 12:00:00'),
-(8, 'Ahmed Karim', 'guest-881d64de00ea@guest.local', '01711000007', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-17 12:00:00'),
-(9, 'Mitu Sarker', 'guest-c56a4b1f47c8@guest.local', '01811000008', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Rajshahi', NULL, 1, 1, NULL, '2026-10-18 12:00:00'),
-(10, 'Md. Jahidul Hakim', 'mdjhk20@gmail.com', '01837090666', '$2y$10$B.yM7tg73vaIlZOp5N2xveRwXqNuKjMqaA4XECf.yLSF2axnwvLQ2', 'customer', '', NULL, NULL, NULL, 0, 1, '2026-11-11 11:02:34', '2026-11-11 11:02:34'),
-(11, 'Md. Jahidul Hakim', 'admin@abcit.com', '01837090666', '$2y$10$/.OL33dIEfzgjofN4.RoIuUWlCZEBBqYAWJtdaflmBq4.VFW3Q32i', 'customer', '', '', '', '261111-6c5b782909.jpg', 0, 1, '2026-11-11 12:55:20', '2026-11-11 12:55:20'),
-(12, 'Moyna', 'mdjhk300@gmail.com', '01957288638', '$2y$10$F3QYw4lngQVhsFCB1KpmxeERvA7oiYQwyKsnHdBaKVW8bit7SF2Yy', 'manager', 'products,categories,orders,customers,content,finance,reports', NULL, NULL, NULL, 0, 1, '2026-11-11 13:39:34', '2026-11-11 13:39:13'),
-(13, 'Md. Jahidul Hakim', 'mdjhk19@gmail.com', '01837090666', '$2y$10$mmpjPKCOQmrBmSmbCmJKSu/5c.s15zbzOfWaCS9R5COgwJPwSaW52', 'customer', '', 'Dhaka,Gazipur,Boardbazar,National university,', 'Gazipur', NULL, 0, 1, '2026-11-11 19:22:57', '2026-11-11 19:22:18');
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `perms`, `address`, `city`, `avatar`, `is_guest`, `status`, `last_login`, `created_at`, `manager_action_code_hash`) VALUES
+(1, 'Super Admin', 'admin@drynutri.com', '', '$2y$10$FL.nLMxQh/wBVjMFvin0juvWDbFalWbMY.zfJPhYdiNl1fAnyFpf.', 'admin', '', NULL, NULL, '261111-c3b001b969.jpg', 0, 1, '2026-11-16 22:46:45', '2026-11-11 10:58:20', NULL),
+(2, 'Rahim Ahmed', 'guest-2171ab8530ff@guest.local', '01711000001', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-11 12:00:00', NULL),
+(3, 'Fatema Akter', 'guest-9bda39f7e671@guest.local', '01711000002', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Uttara', NULL, 1, 1, NULL, '2026-10-12 12:00:00', NULL),
+(4, 'Md. Hasan', 'guest-4b678c41df36@guest.local', '01811000003', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Chattogram', NULL, 1, 1, NULL, '2026-10-13 12:00:00', NULL),
+(5, 'Nusrat Jahan', 'guest-1393053fbda8@guest.local', '01911000004', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-14 12:00:00', NULL),
+(6, 'Tariqul Islam', 'guest-ab88850e22a5@guest.local', '01611000005', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Sylhet', NULL, 1, 1, NULL, '2026-10-15 12:00:00', NULL),
+(7, 'Sabrina Rahman', 'guest-c61220e50c95@guest.local', '01511000006', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Gazipur', NULL, 1, 1, NULL, '2026-10-16 12:00:00', NULL),
+(8, 'Ahmed Karim', 'guest-881d64de00ea@guest.local', '01711000007', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Dhaka', NULL, 1, 1, NULL, '2026-10-17 12:00:00', NULL),
+(9, 'Mitu Sarker', 'guest-c56a4b1f47c8@guest.local', '01811000008', '$2y$10$demoguestaccountcannotloginxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'customer', '', 'House 12, Road 5', 'Rajshahi', NULL, 1, 1, NULL, '2026-10-18 12:00:00', NULL),
+(10, 'Md. Jahidul Hakim', 'mdjhk20@gmail.com', '01837090666', '$2y$10$B.yM7tg73vaIlZOp5N2xveRwXqNuKjMqaA4XECf.yLSF2axnwvLQ2', 'customer', '', NULL, NULL, NULL, 0, 1, '2026-11-11 11:02:34', '2026-11-11 11:02:34', NULL),
+(11, 'Md. Jahidul Hakim', 'admin@abcit.com', '01837090666', '$2y$10$/.OL33dIEfzgjofN4.RoIuUWlCZEBBqYAWJtdaflmBq4.VFW3Q32i', 'customer', '', '', '', '261111-6c5b782909.jpg', 0, 1, '2026-11-11 12:55:20', '2026-11-11 12:55:20', NULL),
+(12, 'Moyna', 'mdjhk300@gmail.com', '01957288638', '$2y$10$F3QYw4lngQVhsFCB1KpmxeERvA7oiYQwyKsnHdBaKVW8bit7SF2Yy', 'manager', 'products,categories,orders,customers,content,finance,reports', NULL, NULL, NULL, 0, 1, '2026-11-11 13:39:34', '2026-11-11 13:39:13', NULL),
+(13, 'Md. Jahidul Hakim', 'mdjhk19@gmail.com', '01837090666', '$2y$10$mmpjPKCOQmrBmSmbCmJKSu/5c.s15zbzOfWaCS9R5COgwJPwSaW52', 'customer', '', 'Dhaka,Gazipur,Boardbazar,National university,', 'Gazipur', NULL, 0, 1, '2026-11-11 19:22:57', '2026-11-11 19:22:18', NULL),
+(14, 'Nabil', 'admin@nabil.com', '1kjggskjgsgksg', '$2y$10$PGwkTgUPph2c2DZ7.2t5aezX1T8CsuOHQRazhcbpvW/hbG47ZgPYO', 'customer', '', 'rtertetetetet', '', NULL, 0, 1, '2026-11-15 22:33:34', '2026-11-15 22:33:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -1712,11 +1748,56 @@ INSERT INTO `visitors` (`id`, `ip`, `page`, `referrer`, `user_agent`, `device`, 
 (514, '::1', '/drynutri/login.php', 'http://localhost/drynutri/checkout.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-12', '2026-11-12 20:59:41'),
 (515, '::1', '/drynutri/', '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-13', '2026-11-13 18:13:29'),
 (516, '::1', '/drynutri/', '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-13', '2026-11-13 18:20:42'),
-(517, '::1', '/drynutri/login.php', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-13', '2026-11-13 18:21:02');
+(517, '::1', '/drynutri/login.php', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-13', '2026-11-13 18:21:02'),
+(518, '::1', '/drynutri/', '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:10:01'),
+(519, '::1', '/drynutri/?lang=bn', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:17:19'),
+(520, '::1', '/drynutri/?lang=en', 'http://localhost/drynutri/?lang=bn', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:17:45'),
+(521, '::1', '/drynutri/shop.php', 'http://localhost/drynutri/?lang=en', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:18:15'),
+(522, '::1', '/drynutri/shop.php?lang=bn', 'http://localhost/drynutri/shop.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:18:27'),
+(523, '::1', '/drynutri/shop.php?lang=en', 'http://localhost/drynutri/shop.php?lang=bn', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:19:07'),
+(524, '::1', '/drynutri/shop.php?q=premium+almonds', 'http://localhost/drynutri/shop.php?lang=en', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:19:42'),
+(525, '::1', '/drynutri/index.php', 'http://localhost/drynutri/shop.php?q=premium+almonds', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:19:48'),
+(526, '::1', '/drynutri/wishlist.php', 'http://localhost/drynutri/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:23:25'),
+(527, '::1', '/drynutri/login.php', 'http://localhost/drynutri/wishlist.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:23:28'),
+(528, '::1', '/drynutri/index.php', 'http://localhost/drynutri/login.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:23:38'),
+(529, '::1', '/drynutri/product.php?slug=tropical-trail-mix-300g', 'http://localhost/drynutri/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:23:45'),
+(530, '::1', '/drynutri/product.php?slug=dried-orange-slices-150g', 'http://localhost/drynutri/product.php?slug=tropical-trail-mix-300g', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:26:29'),
+(531, '::1', '/drynutri/checkout.php', 'http://localhost/drynutri/product.php?slug=dried-orange-slices-150g', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:26:33'),
+(532, '::1', '/drynutri/', 'http://localhost/drynutri/checkout.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:26:55'),
+(533, '::1', '/drynutri/login.php', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:27:06'),
+(534, '::1', '/drynutri/index.php', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:32:31'),
+(535, '::1', '/drynutri/login.php', 'http://localhost/drynutri/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:32:33'),
+(536, '::1', '/drynutri/login.php', 'http://localhost/drynutri/login.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:32:39'),
+(537, '::1', '/drynutri/register.php', 'http://localhost/drynutri/login.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:33:09'),
+(538, '::1', '/drynutri/return.php', 'http://localhost/drynutri/register.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:33:34'),
+(539, '::1', '/drynutri/index.php', 'http://localhost/drynutri/return.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:33:48'),
+(540, '::1', '/drynutri/checkout.php', 'http://localhost/drynutri/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:33:53'),
+(541, '::1', '/drynutri/checkout.php?done=DN261115B81D4', 'http://localhost/drynutri/checkout.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:10'),
+(542, '::1', '/drynutri/shop.php', 'http://localhost/drynutri/checkout.php?done=DN261115B81D4', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:13'),
+(543, '::1', '/drynutri/account.php', 'http://localhost/drynutri/shop.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:14'),
+(544, '::1', '/drynutri/return.php', 'http://localhost/drynutri/account.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:18'),
+(545, '::1', '/drynutri/return.php', 'http://localhost/drynutri/return.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:50'),
+(546, '::1', '/drynutri/account.php', 'http://localhost/drynutri/admin/orders.php?status=cancelled', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:57'),
+(547, '::1', '/drynutri/account.php', 'http://localhost/drynutri/account.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:34:58'),
+(548, '::1', '/drynutri/index.php', 'http://localhost/drynutri/account.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:35:01'),
+(549, '::1', '/drynutri/login.php', 'http://localhost/drynutri/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 22:35:03'),
+(550, '::1', '/drynutri/index.php', 'http://localhost/drynutri/admin/index.php', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-15', '2026-11-15 23:25:29'),
+(551, '::1', '/drynutri/', '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-16', '2026-11-16 22:46:23'),
+(552, '::1', '/drynutri/login.php', 'http://localhost/drynutri/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'desktop', '2026-11-16', '2026-11-16 22:46:30');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `actor_user_id` (`actor_user_id`),
+  ADD KEY `actor_role` (`actor_role`),
+  ADD KEY `action_type` (`action_type`),
+  ADD KEY `created_at` (`created_at`);
 
 --
 -- Indexes for table `admin_notification_reads`
@@ -1937,6 +2018,12 @@ ALTER TABLE `visitors`
 --
 
 --
+-- AUTO_INCREMENT for table `activity_logs`
+--
+ALTER TABLE `activity_logs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
@@ -1946,7 +2033,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `checkout_visits`
 --
 ALTER TABLE `checkout_visits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `contact_messages`
@@ -1988,7 +2075,7 @@ ALTER TABLE `menu_items`
 -- AUTO_INCREMENT for table `newsletter`
 --
 ALTER TABLE `newsletter`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -2000,19 +2087,19 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `order_log`
 --
 ALTER TABLE `order_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT for table `pages`
@@ -2054,13 +2141,13 @@ ALTER TABLE `product_videos`
 -- AUTO_INCREMENT for table `push_subscriptions`
 --
 ALTER TABLE `push_subscriptions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 
 --
 -- AUTO_INCREMENT for table `return_requests`
 --
 ALTER TABLE `return_requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -2090,13 +2177,13 @@ ALTER TABLE `testimonials`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `visitors`
 --
 ALTER TABLE `visitors`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=518;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=553;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

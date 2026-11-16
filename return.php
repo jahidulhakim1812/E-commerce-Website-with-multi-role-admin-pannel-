@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 q('INSERT INTO return_requests(user_id,order_id,order_item_id,product_name,product_variant,product_image,proof_image,reason) VALUES(?,?,?,?,?,?,?,?)', [
                     $u['id'], $item['order_id'], $item['id'], $item['name'] ?: t('product'), $item['variant'], $item['image'], $proof, $reason
                 ]);
+                audit_activity('return_request', 'Submitted a parcel return request', 'order', (int)$item['order_id'], $u);
                 flash(t('return_submitted'));
                 redirect('return.php');
             }

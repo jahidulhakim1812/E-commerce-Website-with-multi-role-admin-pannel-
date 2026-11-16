@@ -3,9 +3,9 @@ require '_layout.php'; admin_start('Checkout Visited', 'orders');
 function wa_num($p) { $d = preg_replace('/\D/', '', (string)$p); if (strlen($d) === 11 && $d[0] === '0') return '88' . $d; return $d; }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check(); $id = (int)($_POST['id'] ?? 0);
-    if (isset($_POST['contacted'])) { q('UPDATE checkout_visits SET contacted=1-contacted WHERE id=?', [$id]); flash('Updated.'); }
-    elseif (isset($_POST['del'])) { q('DELETE FROM checkout_visits WHERE id=?', [$id]); flash('Deleted.'); }
-    elseif (isset($_POST['clear_old'])) { q("DELETE FROM checkout_visits WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY)"); flash('Records older than 90 days were removed.'); }
+    if (isset($_POST['contacted'])) { q('UPDATE checkout_visits SET contacted=1-contacted WHERE id=?', [$id]); audit_activity('update', 'Updated checkout visitor contact status', 'checkout_visit', $id); flash('Updated.'); }
+    elseif (isset($_POST['del'])) { q('DELETE FROM checkout_visits WHERE id=?', [$id]); audit_activity('delete', 'Deleted checkout visitor record', 'checkout_visit', $id); flash('Deleted.'); }
+    elseif (isset($_POST['clear_old'])) { $removed = q("DELETE FROM checkout_visits WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY)")->rowCount(); audit_activity('delete', 'Deleted ' . $removed . ' checkout visitor record(s) older than 90 days', 'checkout_visit'); flash('Records older than 90 days were removed.'); }
     redirect('checkout_visits.php' . (!empty($_POST['back']) ? '?' . $_POST['back'] : ''));
 }
 $ST = "CASE WHEN status='ordered' THEN 'ordered' WHEN updated_at < DATE_SUB(NOW(), INTERVAL 30 MINUTE) THEN 'abandoned' ELSE 'active' END";

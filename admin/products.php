@@ -1,7 +1,7 @@
 <?php
 require '_layout.php'; admin_start('Products', 'products');
 $cats = fn() => [0 => '— Select —'] + array_column(rows('SELECT id,name_en FROM categories ORDER BY parent_id,sort_order,id'), 'name_en', 'id');
-crud(['table' => 'products', 'title' => 'Products', 'single' => 'Product', 'search' => ['name_en', 'name_bn', 'brand'], 'defaults' => ['status' => 1, 'unit' => '', 'brand' => 'DryNutri'],
+crud(['table' => 'products', 'title' => 'Products', 'single' => 'Product', 'search' => ['name_en', 'name_bn', 'brand'], 'defaults' => ['status' => 1, 'unit' => '', 'brand' => 'DryNutri'], 'action_code_required' => true,
 
  'after' => function ($id, $new, $d) { sync_variants_from_post($id); if ($new && !empty($d['status']) && S('notify_products') === '1') { $p = row('SELECT * FROM products WHERE id=?', [$id]); if ($p) notify_create('product', '🆕 New arrival: ' . $p['name_en'], ($p['short_en'] ?: 'Now available at ' . S('site_name')) . ' - ' . money($p['price']), 'product.php?slug=' . $p['slug'], $p['name_bn'] ? '🆕 নতুন পণ্য: ' . $p['name_bn'] : '', $p['short_bn'] ?? '', $p['image'] ?? ''); } },
  'fields' => [

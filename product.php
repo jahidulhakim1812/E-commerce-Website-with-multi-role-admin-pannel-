@@ -4,7 +4,7 @@ $p = row('SELECT * FROM products WHERE slug=? AND status=1', [$_GET['slug'] ?? '
 if (!$p) { http_response_code(404); $page_title = t('page_not_found'); require 'includes/header.php'; echo '<div class="container sec center"><h1>404</h1><a class="btn" href="' . url() . '">' . t('back_home') . '</a></div>'; require 'includes/footer.php'; exit; }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review'])) {
     csrf_check(); $u = user();
-    if ($u && trim($_POST['body'] ?? '')) { q('INSERT INTO reviews(product_id,user_id,name,rating,body,status) VALUES(?,?,?,?,?,0)', [$p['id'], $u['id'], $u['name'], max(1, min(5, (int)$_POST['rating'])), trim($_POST['body'])]); flash(t('review_pending')); }
+    if ($u && trim($_POST['body'] ?? '')) { q('INSERT INTO reviews(product_id,user_id,name,rating,body,status) VALUES(?,?,?,?,?,0)', [$p['id'], $u['id'], $u['name'], max(1, min(5, (int)$_POST['rating'])), trim($_POST['body'])]); audit_activity('review_submitted', 'Submitted a product review', 'product', (int)$p['id'], $u); flash(t('review_pending')); }
     redirect('product.php?slug=' . $p['slug'] . '#reviews');
 }
 $vars = variants_of($p['id']); $def = null;

@@ -1,6 +1,6 @@
 <?php
 require '_layout.php';
-admin_start('Export Center');
+admin_start('Export Center', 'exports');
 
 $validDate = static function ($value) {
     if (!is_string($value) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) return false;
@@ -112,6 +112,7 @@ if (isset($_GET['download'])) {
 
     $dataset = $available[$datasetKey];
     $rows = $dataset['query']();
+    audit_activity('export', 'Exported ' . count($rows) . ' ' . $datasetKey . ' record(s) as ' . strtoupper($format), 'export');
     $fileBase = 'drynutri-' . $datasetKey . '-' . date('Ymd');
     ob_end_clean();
     if ($format === 'csv') {

@@ -22,10 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!can('orders')) notification_response(['error' => 'You do not have permission to view orders.'], 403);
         if (!val('SELECT id FROM orders WHERE id=?', [$id])) notification_response(['error' => 'This order is no longer available.'], 404);
         q('INSERT INTO admin_notification_reads(staff_id,item_type,item_id) VALUES(?,?,?) ON DUPLICATE KEY UPDATE read_at=VALUES(read_at)', [$staff['id'], 'order', $id]);
+        audit_activity('notification_read', 'Marked order notification as read', 'order', $id, $staff);
     } else {
         if (!can('customers')) notification_response(['error' => 'You do not have permission to view messages.'], 403);
         $updated = q('UPDATE contact_messages SET is_read=1 WHERE id=? AND is_read=0', [$id])->rowCount();
         if (!$updated && !val('SELECT id FROM contact_messages WHERE id=?', [$id])) notification_response(['error' => 'This message is no longer available.'], 404);
+        if ($updated) audit_activity('notification_read', 'Marked message notification as read', 'contact_message', $id, $staff);
     }
 
     notification_response(['ok' => true]);

@@ -8,9 +8,15 @@ function crud($c) {
     $back = $self . ($keep ? '?' . http_build_query($keep) : '');
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         csrf_check();
+        if (!empty($c['action_code_required']) && user()['role'] === 'manager' && !manager_action_code_valid($_POST['_manager_action_code'] ?? '')) {
+            if (isset($_POST['_save'])) { $_SESSION['old'] = $_POST; unset($_SESSION['old']['_manager_action_code'], $_SESSION['old']['password']); }
+            flash('Enter the action code provided by your administrator.', 'err');
+            $id = (int)($_POST['id'] ?? 0);
+            redirect(isset($_POST['_save']) ? ($id ? $self . '?a=edit&id=' . $id . $kq : $self . '?a=add' . $kq) : $back);
+        }
         if (isset($_POST['_delete'])) {
             $r = row("SELECT * FROM $t WHERE id=? AND ($where)", array_merge([(int)$_POST['_delete']], $wargs));
-            if ($r && (!isset($c['can_delete']) || $c['can_delete']($r))) { q("DELETE FROM $t WHERE id=?", [$r['id']]); if (isset($c['on_delete'])) $c['on_delete']($r); flash('Deleted.'); } else flash('Cannot delete this item.', 'err');
+            if ($r && (!isset($c['can_delete']) || $c['can_delete']($r))) { q("DELETE FROM $t WHERE id=?", [$r['id']]); if (isset($c['on_delete'])) $c['on_delete']($r); audit_activity('delete', 'Deleted ' . ($c['single'] ?? $t), $t, (int)$r['id']); flash('Deleted.'); } else flash('Cannot delete this item.', 'err');
             redirect($back);
         }
         if (isset($_POST['_save'])) {
@@ -38,11 +44,12 @@ function crud($c) {
             }
             foreach ($F as $f) if (($f['slug_from'] ?? '') && isset($d[$f['name']])) { $s = $d[$f['name']] ?: slugify($d[$f['slug_from']] ?? ''); $s = slugify($s); if (val("SELECT id FROM $t WHERE {$f['name']}=? AND id<>?", [$s, $id])) $s .= '-' . rand(100, 999); $d[$f['name']] = $s; }
             foreach ($fixed as $k => $v) $d[$k] = $v;
-            if ($err) { flash($err, 'err'); $_SESSION['old'] = $_POST; redirect($self . '?a=' . ($id ? 'edit&id=' . $id : 'add') . $kq); }
+            if ($err) { flash($err, 'err'); $_SESSION['old'] = $_POST; unset($_SESSION['old']['_manager_action_code'], $_SESSION['old']['manager_action_code'], $_SESSION['old']['password']); redirect($self . '?a=' . ($id ? 'edit&id=' . $id : 'add') . $kq); }
             try {
                 if ($id) { $set = implode(',', array_map(fn($k) => "$k=?", array_keys($d))); q("UPDATE $t SET $set WHERE id=?", array_merge(array_values($d), [$id])); }
                 else { $cols = implode(',', array_keys($d)); $ph = implode(',', array_fill(0, count($d), '?')); q("INSERT INTO $t ($cols) VALUES ($ph)", array_values($d)); $id = (int)db()->lastInsertId(); }
                 if (isset($c['after'])) $c['after']($id, !$old, $d);
+                audit_activity($old ? 'update' : 'create', ($old ? 'Updated ' : 'Created ') . ($c['single'] ?? $t), $t, $id);
                 flash('Saved successfully.');
             } catch (PDOException $ex) { flash('Could not save: ' . (strpos($ex->getMessage(), 'Duplicate') !== false ? 'duplicate value (email/slug/code must be unique).' : $ex->getMessage()), 'err'); }
             redirect($back);
@@ -69,6 +76,7 @@ function crud($c) {
             if (!empty($f['help'])) echo '<small>' . e($f['help']) . '</small>';
             echo '</div>';
         }
+        if (!empty($c['action_code_required']) && user()['role'] === 'manager') echo '<div class="fld full"><label>Admin-issued action code</label><input type="password" name="_manager_action_code" required autocomplete="off"></div>';
         echo '</div><div class="form-actions"><button class="abtn">💾 Save</button> <a class="abtn ghost" href="' . e($back) . '">Cancel</a></div></form></div>'; return;
     }
     /* list */
@@ -84,7 +92,10 @@ function crud($c) {
             if (isset($f['fmt'])) echo $f['fmt']($r); elseif ($ty === 'image') echo '<img class="thumb" src="' . img($v) . '" alt="">'; elseif ($ty === 'checkbox') echo '<span class="pill ' . ($v ? 's-delivered' : 's-cancelled') . '">' . ($v ? 'Active' : 'Off') . '</span>';
             elseif ($ty === 'select') echo e(crud_opts($f)[$v] ?? $v); elseif ($ty === 'number' && !empty($f['money'])) echo money($v); else echo e(mb_strimwidth((string)$v, 0, 60, '…')); echo '</td>'; }
         echo '<td class="acts">' . (isset($c['actions']) ? $c['actions']($r) : '') . '<a class="abtn sm" href="?a=edit&id=' . $r['id'] . $kq . '">✎ Edit</a>';
-        if (!isset($c['can_delete']) || $c['can_delete']($r)) echo '<form method="post" onsubmit="return confirm(\'Delete this item?\')" style="display:inline">' . csrf_field() . '<input type="hidden" name="_delete" value="' . $r['id'] . '"><button class="abtn sm danger">🗑</button></form>';
+        if (!isset($c['can_delete']) || $c['can_delete']($r)) {
+            $codeField = !empty($c['action_code_required']) && user()['role'] === 'manager' ? '<input type="password" name="_manager_action_code" placeholder="Action code" required autocomplete="off" style="width:110px">' : '';
+            echo '<form method="post" onsubmit="return confirm(\'Delete this item?\')" style="display:inline">' . $codeField . csrf_field() . '<input type="hidden" name="_delete" value="' . $r['id'] . '"><button class="abtn sm danger">🗑</button></form>';
+        }
         echo '</td></tr>';
     }
     if (!$rs) echo '<tr><td colspan="20" class="empty">No records yet.</td></tr>';
