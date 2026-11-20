@@ -107,6 +107,8 @@ function render_section($s) {
               <button type="button" class="story-control story-close" data-story-close aria-label="Close stories">×</button>
             </div>
             <video class="story-video" data-story-video playsinline preload="metadata"></video>
+            <div class="story-loading" data-story-loading hidden><span></span></div>
+            <div class="story-error" data-story-error hidden><b>Video unavailable</b><button type="button" data-story-retry>Try again</button></div>
             <button type="button" class="story-play" data-story-play hidden>▶</button>
             <button type="button" class="story-nav story-prev" data-story-prev aria-label="Previous story">‹</button>
             <button type="button" class="story-nav story-next" data-story-next aria-label="Next story">›</button>

@@ -29,7 +29,7 @@ function admin_start($title, $perm = '') {
     if (can('customers')) $unread += (int)val("SELECT COUNT(*) FROM contact_messages WHERE is_read=0");
     $pend = (int)val("SELECT COUNT(*) FROM orders WHERE status='pending'"); ?>
 <!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?= e($title) ?> | <?= e(S('site_name')) ?> Admin</title>
-<link rel="icon" href="<?= favicon_url() ?>"><link rel="stylesheet" href="<?= asset('css/admin.css') ?>?v=12"><style>:root{--green:<?= e(S('primary_color', '#1f5c3a')) ?>;--accent:<?= e(S('accent_color', '#e8923a')) ?>}</style>
+<link rel="icon" href="<?= favicon_url() ?>"><link rel="stylesheet" href="<?= asset('css/admin.css') ?>?v=14"><style>:root{--green:<?= e(S('primary_color', '#1f5c3a')) ?>;--accent:<?= e(S('accent_color', '#e8923a')) ?>}</style>
 <script>(function(){var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t||'light');if(localStorage.getItem('sbc')==='1')document.documentElement.classList.add('sb-collapsed')})()</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script></head><body>
 <aside class="sidebar" id="sidebar"><a class="s-logo" href="index.php"><?= logo_html('dark') ?><small class="role"><?= $u['role'] === 'admin' ? 'Admin Panel' : 'Manager Panel' ?></small></a>

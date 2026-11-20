@@ -4,7 +4,7 @@
 *{box-sizing:border-box}body{margin:0;font-family:'Poppins','Segoe UI',system-ui,sans-serif;background:radial-gradient(900px 420px at 90% -5%,rgba(126,217,87,.20),transparent 60%),radial-gradient(800px 400px at 0% 100%,rgba(47,125,50,.08),transparent 60%),var(--bg);background-attachment:fixed;color:var(--text);font-size:14px;transition:background .3s}a{color:inherit;text-decoration:none}img{max-width:100%}
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sw);background:radial-gradient(300px 200px at 0% 0%,rgba(126,217,87,.26),transparent 70%),linear-gradient(190deg,color-mix(in srgb,var(--green) 70%,#000),var(--p-d) 60%,var(--p-dd));color:#d9ecdf;display:flex;flex-direction:column;z-index:60;transition:.3s;overflow:hidden;box-shadow:8px 0 30px rgba(0,0,0,.25)}
 .s-logo{display:flex;gap:12px;align-items:center;padding:20px 22px;color:#fff}.s-leaf{font-size:2.1rem;filter:drop-shadow(0 6px 5px rgba(0,0,0,.4));animation:sway 5s ease-in-out infinite}@keyframes sway{50%{transform:rotate(10deg) translateY(-2px)}}.s-logo b{display:block;font-size:1.35rem;font-family:Georgia,serif;line-height:1}.s-logo small.role{opacity:.7;font-size:.7rem}
-.sidebar nav{flex:1;overflow:auto;padding:4px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}.s-grp{font-size:.62rem;letter-spacing:1.4px;text-transform:uppercase;opacity:.5;padding:14px 14px 6px}
+.sidebar nav{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.35) transparent;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}.s-grp{font-size:.62rem;letter-spacing:1.4px;text-transform:uppercase;opacity:.5;padding:14px 14px 6px}
 .sidebar nav a,.s-foot a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;margin-bottom:3px;transition:.2s;white-space:nowrap;position:relative}.sidebar nav a:hover,.s-foot a:hover{background:rgba(255,255,255,.1);transform:translateX(3px)}
 .sidebar nav a.on{background:linear-gradient(180deg,var(--accent),#5fb23a);color:#10300f;font-weight:600;box-shadow:none;transform:translateY(-1px)}.sidebar nav i,.s-foot i{font-style:normal;font-size:1.1rem;width:24px;text-align:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .sidebar nav em{margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;font-style:normal;font-size:.68rem;padding:1px 8px;box-shadow:none}.s-foot{padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)}
@@ -161,3 +161,121 @@ button:focus-visible,.abtn:focus-visible,.icon-btn:focus-visible,.tabs-a a:focus
 .mail-setup-card small{display:block;color:var(--muted);font-size:.76rem}
 .mail-setup>[data-mail-preset-note]{margin:14px 0 0}
 @media(max-width:700px){.mail-setup-grid{grid-template-columns:1fr}}
+
+/* Page-wide 3D admin depth system */
+.content{perspective:1500px}
+.sidebar{
+  box-shadow:10px 0 34px rgba(20,70,28,.24);
+}
+.topbar{
+  box-shadow:0 10px 28px rgba(20,70,28,.10);
+}
+.panel,
+.kpi,
+.mini,
+.welcome,
+.qa a,
+.atbl,
+.table-wrap,
+.chart-box,
+.builder .prevframe,
+.admin-notif-pop,
+.profile-menu,
+.aform,
+.mail-setup-card,
+.alertbox{
+  transform-style:preserve-3d;
+  transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.panel,
+.kpi,
+.mini,
+.welcome,
+.mail-setup-card,
+.alertbox,
+.builder .prevframe{
+  box-shadow:var(--shadow),0 16px 38px rgba(20,70,28,.06);
+}
+.panel:hover,
+.kpi:hover,
+.mini:hover,
+.mail-setup-card:hover,
+.builder .prevframe:hover{
+  transform:translateY(-4px) translateZ(6px);
+  box-shadow:var(--shadow-h),0 22px 44px rgba(20,70,28,.12);
+}
+.welcome h1,
+.panel h3,
+.topbar h2,
+.mini b,
+.kt b{
+  text-shadow:0 4px 10px rgba(20,70,28,.10);
+}
+.aform input:not([type]),
+.aform input[type=text],
+.aform input[type=email],
+.aform input[type=tel],
+.aform input[type=url],
+.aform input[type=search],
+.aform input[type=number],
+.aform input[type=date],
+.aform input[type=password],
+.aform input[type=file],
+.aform select,
+.aform textarea,
+.filt input,
+.filt select,
+.mini-s input{
+  box-shadow:inset 0 3px 7px rgba(20,70,28,.06),0 5px 12px rgba(20,70,28,.04);
+}
+.aform input:focus,
+.aform select:focus,
+.aform textarea:focus,
+.filt input:focus,
+.mini-s input:focus{
+  transform:translateY(-1px);
+}
+.atbl tbody tr,
+.tp,
+.logrow{
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.atbl tbody tr:hover,
+.tp:hover,
+.logrow:hover{
+  transform:translateZ(4px);
+}
+.abtn,
+.icon-btn,
+.tabs-a a,
+.pager a,
+.qa a,
+.range button,
+.sw span{
+  box-shadow:0 8px 16px rgba(20,70,28,.12);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.abtn:hover,
+.icon-btn:hover,
+.tabs-a a:hover,
+.pager a:hover,
+.qa a:hover,
+.range button:hover{
+  transform:translateY(-3px) translateZ(5px);
+  box-shadow:0 12px 22px rgba(20,70,28,.18);
+}
+.abtn:active,
+.icon-btn:active,
+.qa a:active{
+  transform:translateY(2px);
+  box-shadow:0 3px 8px rgba(20,70,28,.14);
+}
+@media(max-width:900px){
+  .panel:hover,
+  .kpi:hover,
+  .mini:hover,
+  .mail-setup-card:hover,
+  .builder .prevframe:hover{
+    transform:translateY(-2px);
+  }
+}
