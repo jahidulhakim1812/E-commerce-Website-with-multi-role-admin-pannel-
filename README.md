@@ -19,6 +19,8 @@ SMTP setup presets for Gmail and hosting webmail, test-mail button, and editable
 
 The Admin → Sales & Insight → Export Center downloads customer, product, subscriber, order, sales, finance, and visitor data as CSV or Word-compatible `.doc` files. Exports follow the signed-in manager's section permissions and include a selectable date range. Customer, subscriber, and visitor exports can contain personal information; handle downloaded files securely.
 
+- **Live chat:** Visitors can chat without creating an account and attach JPG, PNG, GIF, or WebP images (up to 5 MB). A welcome response appears automatically. Admins and managers with the **Customers** permission can view conversations and reply from Admin → Sales & Insight → Live Chat. Existing databases create the chat tables automatically when the feature is first used.
+
 ## Notes
 - Language: English default, Bengali toggle (top bar / side drawer). Light/Dark toggle on website and all panels.
 - Auto emails need SMTP enabled in Admin → Settings → Email. WhatsApp auto-messages need a paid WhatsApp Business API (not included); the floating WhatsApp button and "Order on WhatsApp" are included.
@@ -53,7 +55,7 @@ The Admin → Sales & Insight → Export Center downloads customer, product, sub
 - Natural green colour theme (colours editable with one-click presets in Settings > Appearance).
 - All interface icons are premium SVG icons (no emoji). Product/category tiles show a fruit emoji only until you upload real photos.
 - Settings page: General, Appearance, Contact & Footer, Shipping & Payment, Floating Contact, Notifications, Email (SMTP), SSL Wireless SMS, and Browser Push - all validated and saved per tab.
-- Security: CSRF tokens, hashed passwords, login lock after 5 wrong attempts (15 min), security headers, upload checks.
+- Security: CSRF tokens, hashed passwords, login lock after 5 wrong attempts (2 min), security headers, upload checks.
 - SEO: Open Graph tags, product structured data, sitemap at /sitemap.php, robots.txt.
 
 ## Latest additions

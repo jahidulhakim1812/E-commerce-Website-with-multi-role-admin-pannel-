@@ -4,7 +4,7 @@ if (user()) redirect(is_staff() ? 'admin/' : 'account.php');
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
-    if (login_locked()) $err = LANG === 'bn' ? 'অনেকবার ভুল চেষ্টা। ১৫ মিনিট পরে আবার চেষ্টা করুন।' : 'Too many failed attempts. Please try again in 15 minutes.';
+    if (login_locked()) $err = LANG === 'bn' ? 'অনেকবার ভুল চেষ্টা। ২ মিনিট পরে আবার চেষ্টা করুন।' : 'Too many failed attempts. Try again in 2 min.';
     else { $u = row('SELECT * FROM users WHERE email=? AND status=1', [trim($_POST['email'] ?? '')]);
     if ($u && password_verify($_POST['password'] ?? '', $u['password'])) { login_ok(); login_user($u); $b = $_SESSION['back'] ?? ''; unset($_SESSION['back']); redirect(in_array($u['role'], ['admin', 'manager']) ? 'admin/' : ($b ?: 'account.php')); }
     login_fail(); $err = t('invalid_login'); }

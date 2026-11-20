@@ -460,9 +460,9 @@ function logo_html($ctx = 'header', $full = false) {
 function logo_url() { return has_img(S('logo')) ? full_url('uploads/' . S('logo')) : full_url('assets/img/logo.png'); }
 function favicon_url() { return has_img(S('favicon')) ? img(S('favicon')) : asset('img/favicon.png'); }
 
-/* ---------- Login throttle (5 wrong passwords => 15 min lock per IP) ---------- */
+/* ---------- Login throttle (5 wrong passwords => 2 min lock per IP) ---------- */
 function login_locked() { try { $r = row('SELECT tries,locked_until FROM login_attempts WHERE ip=?', [client_ip()]); return $r && $r['locked_until'] && strtotime($r['locked_until']) > time(); } catch (Exception $e) { return false; } }
-function login_fail() { try { q('INSERT INTO login_attempts(ip,tries) VALUES(?,1) ON DUPLICATE KEY UPDATE tries=tries+1, locked_until=IF(tries>=5, DATE_ADD(NOW(), INTERVAL 15 MINUTE), locked_until)', [client_ip()]); } catch (Exception $e) {} }
+function login_fail() { try { q('INSERT INTO login_attempts(ip,tries) VALUES(?,1) ON DUPLICATE KEY UPDATE tries=tries+1, locked_until=IF(tries>=5, DATE_ADD(NOW(), INTERVAL 2 MINUTE), locked_until)', [client_ip()]); } catch (Exception $e) {} }
 function login_ok() { try { q('DELETE FROM login_attempts WHERE ip=?', [client_ip()]); } catch (Exception $e) {} }
 
 

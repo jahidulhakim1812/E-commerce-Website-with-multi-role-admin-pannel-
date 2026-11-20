@@ -29,5 +29,7 @@
   <?php if (S('float_email')): ?><a class="fc-em" href="mailto:<?= e(S('float_email')) ?>" title="Email">📧</a><?php endif; ?></div>
   <button class="fc-main" id="fcBtn" aria-label="contact">💬</button></div><?php endif; ?>
 <a href="#" class="to-top" id="toTop" aria-label="top">↑</a><div class="toast" id="toast"></div>
+<?php require __DIR__ . '/live_chat_widget.php'; ?>
 <script src="<?= asset('js/app.js') ?>?v=6"></script>
+<script src="<?= asset('js/live-chat.js') ?>?v=1"></script>
 </body></html>
