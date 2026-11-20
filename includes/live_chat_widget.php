@@ -1,4 +1,4 @@
-<div class="live-chat<?= S('float_enabled') === '1' ? ' live-chat-shift' : '' ?>" id="liveChat">
+<div class="live-chat" id="liveChat">
   <button class="live-chat-launch" type="button" data-chat-toggle aria-label="Open live chat" aria-expanded="false">
     <span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2 1-4.1A7.5 7.5 0 1 1 20 11.5Z"/></svg></span><span class="live-chat-launch-label">Chat with us</span>
   </button>

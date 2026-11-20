@@ -1,19 +1,41 @@
 <?php
 require '_layout.php'; admin_start('Products', 'products');
-$cats = fn() => [0 => '— Select —'] + array_column(rows('SELECT id,name_en FROM categories ORDER BY parent_id,sort_order,id'), 'name_en', 'id');
-crud(['table' => 'products', 'title' => 'Products', 'single' => 'Product', 'search' => ['name_en', 'name_bn', 'brand'], 'defaults' => ['status' => 1, 'unit' => '', 'brand' => 'DryNutri'], 'action_code_required' => true,
+$cats = fn() => [0 => '— Select Category —'] + array_column(rows('SELECT id,name_en FROM categories WHERE status=1 ORDER BY parent_id,sort_order,id'), 'name_en', 'id');
+crud(['table' => 'products', 'title' => 'Products', 'single' => 'Product', 'search' => ['name_en', 'name_bn', 'brand', 'slug'], 'order' => 'id DESC', 'defaults' => ['status' => 1, 'unit' => '', 'brand' => 'DryNutri'], 'action_code_required' => true,
 
  'after' => function ($id, $new, $d) { sync_variants_from_post($id); if ($new && !empty($d['status']) && S('notify_products') === '1') { $p = row('SELECT * FROM products WHERE id=?', [$id]); if ($p) notify_create('product', '🆕 New arrival: ' . $p['name_en'], ($p['short_en'] ?: 'Now available at ' . S('site_name')) . ' - ' . money($p['price']), 'product.php?slug=' . $p['slug'], $p['name_bn'] ? '🆕 নতুন পণ্য: ' . $p['name_bn'] : '', $p['short_bn'] ?? '', $p['image'] ?? ''); } },
+ 'validate' => function ($d, $old, $id) {
+  foreach (['price', 'old_price', 'cost_price'] as $field) if ((float)$d[$field] < 0) return ucfirst(str_replace('_', ' ', $field)) . ' cannot be negative.';
+  if ((int)$d['stock'] < 0) return 'Stock quantity cannot be negative.';
+  $labels = $_POST['v_label'] ?? [];
+  $seen = [];
+  foreach (is_array($labels) ? $labels : [] as $i => $label) {
+   $label = trim($label);
+   if ($label === '') continue;
+   $grams = (int)($_POST['v_grams'][$i] ?? 0);
+   if ($grams <= 0) $grams = parse_grams($label);
+   $price = (float)($_POST['v_price'][$i] ?? 0);
+   $stock = (int)($_POST['v_stock'][$i] ?? 0);
+   if ($grams <= 0) return 'Enter a valid gram/size value for weight option "' . $label . '".';
+   if ($price < 0) return 'Variant price cannot be negative.';
+   if ($stock < 0) return 'Variant stock cannot be negative.';
+   $key = strtolower($label);
+   if (isset($seen[$key])) return 'Duplicate weight option: ' . $label;
+   $seen[$key] = true;
+  }
+  return '';
+ },
+ 'actions' => fn($r) => '<a class="abtn sm ghost" href="../product.php?slug=' . e($r['slug']) . '" target="_blank" rel="noopener" title="View on website">↗ View</a>',
  'fields' => [
   ['name' => 'image', 'label' => 'Main Image', 'type' => 'image', 'list' => true],
-  ['name' => 'name_en', 'label' => 'Name (English)', 'req' => true, 'half' => true, 'list' => true],
+  ['name' => 'name_en', 'label' => 'Name (English)', 'req' => true, 'half' => true, 'list' => true, 'fmt' => fn($r) => '<b>' . e($r['name_en']) . '</b><br><small class="muted">' . e($r['slug']) . '</small>'],
   ['name' => 'name_bn', 'label' => 'Name (বাংলা)', 'half' => true],
   ['name' => 'slug', 'label' => 'URL Slug', 'half' => true, 'slug_from' => 'name_en', 'help' => 'Auto-generated if left empty'],
-  ['name' => 'category_id', 'label' => 'Category / Sub-category', 'type' => 'select', 'opts' => $cats, 'half' => true, 'list' => true],
+  ['name' => 'category_id', 'label' => 'Category / Sub-category', 'type' => 'select', 'opts' => $cats, 'half' => true, 'list' => true, 'fmt' => fn($r) => e(val('SELECT name_en FROM categories WHERE id=?', [(int)$r['category_id']]) ?: 'Uncategorized')],
   ['name' => 'price', 'label' => 'Sale Price (auto = lowest weight option if options are set)', 'type' => 'number', 'half' => true, 'list' => true, 'money' => true],
   ['name' => 'old_price', 'label' => 'Old Price (for discount)', 'type' => 'number', 'half' => true],
   ['name' => 'cost_price', 'label' => 'Cost Price (for profit)', 'type' => 'number', 'half' => true],
-  ['name' => 'stock', 'label' => 'Stock Quantity', 'type' => 'number', 'half' => true, 'list' => true],
+  ['name' => 'stock', 'label' => 'Stock Quantity', 'type' => 'number', 'half' => true, 'list' => true, 'fmt' => fn($r) => '<span class="pill ' . ((int)$r['stock'] > 0 ? 's-delivered' : 's-cancelled') . '">' . (int)$r['stock'] . ' in stock</span>'],
   ['name' => 'unit', 'label' => 'Unit / Weight (e.g. 500g)', 'half' => true],
   ['name' => 'brand', 'label' => 'Brand', 'half' => true],
   ['name' => 'flag', 'label' => 'Product Flag', 'type' => 'select', 'opts' => ['' => 'None', 'best' => 'Best Selling', 'new' => 'New Arrival', 'organic' => 'Organic'], 'half' => true, 'list' => true],

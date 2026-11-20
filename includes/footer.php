@@ -22,7 +22,7 @@
     <div class="cd-btns"><a class="btn btn-ghost" href="<?= url('cart.php') ?>"><?= t('cart') ?></a><a class="btn" href="<?= url('checkout.php') ?>"><?= t('checkout') ?> →</a></div></div></aside>
 <button class="cart-fab" data-open-cart aria-label="cart"><span class="cf-ic">🛍️<i class="cnt js-cnt"><?= cart_count() ?></i></span><span class="cf-t"><small><span class="js-cnt2"><?= cart_count() ?></span> <?= LANG === 'bn' ? 'পণ্য' : 'items' ?></small><b class="js-tot"><?= money(cart_totals()['subtotal']) ?></b></span></button>
 <?php if (S('float_enabled') === '1'): ?>
-<div class="float-contact" id="fc"><div class="fc-list">
+<div class="float-contact float-contact-shift" id="fc"><div class="fc-list">
   <?php if (S('float_whatsapp')): ?><a class="fc-wa" target="_blank" rel="noopener" href="https://wa.me/<?= e(preg_replace('/\D/', '', S('float_whatsapp'))) ?>" title="WhatsApp">💬</a><?php endif; ?>
   <?php if (S('float_messenger')): ?><a class="fc-ms" target="_blank" rel="noopener" href="<?= e(S('float_messenger')) ?>" title="Messenger">✉</a><?php endif; ?>
   <?php if (S('float_phone')): ?><a class="fc-ph" href="tel:<?= e(S('float_phone')) ?>" title="Call">📞</a><?php endif; ?>

@@ -44,6 +44,10 @@ function crud($c) {
             }
             foreach ($F as $f) if (($f['slug_from'] ?? '') && isset($d[$f['name']])) { $s = $d[$f['name']] ?: slugify($d[$f['slug_from']] ?? ''); $s = slugify($s); if (val("SELECT id FROM $t WHERE {$f['name']}=? AND id<>?", [$s, $id])) $s .= '-' . rand(100, 999); $d[$f['name']] = $s; }
             foreach ($fixed as $k => $v) $d[$k] = $v;
+            if (isset($c['validate']) && is_callable($c['validate'])) {
+                $validationError = $c['validate']($d, $old, $id);
+                if (is_string($validationError) && trim($validationError) !== '') $err = trim($validationError);
+            }
             if ($err) { flash($err, 'err'); $_SESSION['old'] = $_POST; unset($_SESSION['old']['_manager_action_code'], $_SESSION['old']['manager_action_code'], $_SESSION['old']['password']); redirect($self . '?a=' . ($id ? 'edit&id=' . $id : 'add') . $kq); }
             try {
                 if ($id) { $set = implode(',', array_map(fn($k) => "$k=?", array_keys($d))); q("UPDATE $t SET $set WHERE id=?", array_merge(array_values($d), [$id])); }
