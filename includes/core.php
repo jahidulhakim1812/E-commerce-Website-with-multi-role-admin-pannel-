@@ -252,25 +252,84 @@ function menu_tree($loc) {
 /* ---------- Mail (built-in SMTP client - credentials come from Admin > Settings) ---------- */
 function send_mail($to, $subject, $html) {
     if (S('mail_enabled') !== '1' || !$to) return false;
-    $host = S('smtp_host'); $port = (int)S('smtp_port', 587); $sec = S('smtp_secure', 'tls'); $user = S('smtp_user'); $pass = S('smtp_pass');
-    $from = S('mail_from') ?: $user; $fname = S('mail_from_name', S('site_name'));
+    $user = trim(S('smtp_user'));
+    $pass = S('smtp_pass');
     $err = '';
-    try {
-        $f = @stream_socket_client(($sec === 'ssl' ? 'ssl://' : '') . $host . ':' . $port, $en, $es, 15);
-        if (!$f) throw new Exception("Connect failed: $es");
-        stream_set_timeout($f, 15);
-        $rd = function () use ($f) { $d = ''; while (($l = fgets($f, 515)) !== false) { $d .= $l; if (substr($l, 3, 1) === ' ') break; } return $d; };
-        $wr = function ($c) use ($f, $rd) { fwrite($f, $c . "\r\n"); return $rd(); };
-        $rd(); $wr('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
-        if ($sec === 'tls') { $wr('STARTTLS'); if (!stream_socket_enable_crypto($f, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) throw new Exception('TLS failed'); $wr('EHLO localhost'); }
-        if ($user) { $wr('AUTH LOGIN'); $wr(base64_encode($user)); $r = $wr(base64_encode($pass)); if (substr($r, 0, 3) !== '235') throw new Exception('SMTP login failed: ' . trim($r)); }
-        $wr("MAIL FROM:<$from>"); $r = $wr("RCPT TO:<$to>"); if (substr($r, 0, 1) !== '2') throw new Exception('Recipient rejected');
-        $wr('DATA');
-        $h = "From: =?UTF-8?B?" . base64_encode($fname) . "?= <$from>\r\nTo: <$to>\r\nSubject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\nDate: " . date('r') . "\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n";
-        $r = $wr($h . chunk_split(base64_encode('<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #dbe7cf;border-radius:12px;padding:24px"><p style="margin:0 0 18px"><img src="' . logo_url() . '" alt="' . e(S('site_name')) . '" style="height:54px"></p>' . $html . '</div>')) . "\r\n.");
-        if (substr($r, 0, 3) !== '250') throw new Exception('Send failed: ' . trim($r));
-        $wr('QUIT'); fclose($f);
-    } catch (Exception $ex) { $err = $ex->getMessage(); }
+    $to = trim($to);
+    if (!filter_var($user, FILTER_VALIDATE_EMAIL) || $pass === '') {
+        $err = 'Webmail address or password is not configured';
+    } elseif (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        $err = 'Recipient email address is invalid';
+    } else {
+        $domain = strtolower(substr(strrchr($user, '@'), 1));
+        $existing = strtolower(trim(S('smtp_host')));
+        $hosts = [];
+        $mxHosts = [];
+        if (function_exists('dns_get_record')) {
+            foreach (@dns_get_record($domain, DNS_MX) ?: [] as $mx) {
+                $mxHost = strtolower(rtrim(trim($mx['target'] ?? ''), '.'));
+                if ($mxHost !== '') $mxHosts[] = $mxHost;
+            }
+        }
+        foreach ([$existing, 'mail.' . $domain, 'smtp.' . $domain, $domain, ...$mxHosts] as $host) {
+            $host = trim($host);
+            if ($host && $host !== 'smtp.gmail.com' && !in_array($host, $hosts, true)) $hosts[] = $host;
+        }
+        $port = (int)S('smtp_port', 587);
+        $secure = S('smtp_secure', 'tls');
+        if (!in_array($port, [465, 587], true) || !in_array($secure, ['ssl', 'tls'], true)) {
+            $port = 587;
+            $secure = 'tls';
+        }
+        $attempts = [];
+        foreach ($hosts as $host) {
+            $attempts[] = ['host' => $host, 'port' => $port, 'secure' => $secure];
+            foreach ([['port' => 465, 'secure' => 'ssl'], ['port' => 587, 'secure' => 'tls']] as $fallback) {
+                if ($fallback['port'] !== $port || $fallback['secure'] !== $secure) {
+                    $attempts[] = ['host' => $host, 'port' => $fallback['port'], 'secure' => $fallback['secure']];
+                }
+            }
+        }
+        $from = $user;
+        $fname = S('mail_from_name', S('site_name'));
+        foreach ($attempts as $attempt) {
+            $f = null;
+            try {
+                $scheme = $attempt['secure'] === 'ssl' ? 'ssl://' : '';
+                $f = @stream_socket_client($scheme . $attempt['host'] . ':' . $attempt['port'], $en, $es, 15);
+                if (!$f) throw new Exception("Connect failed to {$attempt['host']}:{$attempt['port']}: $es");
+                stream_set_timeout($f, 15);
+                $rd = function () use ($f) { $d = ''; while (($l = fgets($f, 515)) !== false) { $d .= $l; if (substr($l, 3, 1) === ' ') break; } return $d; };
+                $wr = function ($c) use ($f, $rd) { fwrite($f, $c . "\r\n"); return $rd(); };
+                $rd();
+                $wr('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+                if ($attempt['secure'] === 'tls') {
+                    $r = $wr('STARTTLS');
+                    if (substr($r, 0, 3) !== '220' || !stream_socket_enable_crypto($f, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) throw new Exception('TLS failed');
+                    $wr('EHLO localhost');
+                }
+                $wr('AUTH LOGIN');
+                $wr(base64_encode($user));
+                $r = $wr(base64_encode($pass));
+                if (substr($r, 0, 3) !== '235') throw new Exception('SMTP login failed: ' . trim($r));
+                $wr("MAIL FROM:<$from>");
+                $r = $wr("RCPT TO:<$to>");
+                if (substr($r, 0, 1) !== '2') throw new Exception('Recipient rejected');
+                $wr('DATA');
+                $h = "From: =?UTF-8?B?" . base64_encode($fname) . "?= <$from>\r\nTo: <$to>\r\nSubject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\nDate: " . date('r') . "\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n";
+                $r = $wr($h . chunk_split(base64_encode('<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;border:1px solid #dbe7cf;border-radius:12px;padding:24px"><p style="margin:0 0 18px"><img src="' . logo_url() . '" alt="' . e(S('site_name')) . '" style="height:54px"></p>' . $html . '</div>')) . "\r\n.");
+                if (substr($r, 0, 3) !== '250') throw new Exception('Send failed: ' . trim($r));
+                $wr('QUIT');
+                fclose($f);
+                $f = null;
+                $err = '';
+                break;
+            } catch (Exception $ex) {
+                $err = $ex->getMessage();
+                if (is_resource($f)) fclose($f);
+            }
+        }
+    }
     q('INSERT INTO mail_log(to_email,subject,status,error) VALUES(?,?,?,?)', [$to, mb_substr($subject, 0, 250), $err ? 'failed' : 'sent', mb_substr($err, 0, 250)]);
     return !$err;
 }
@@ -457,7 +516,22 @@ function logo_html($ctx = 'header', $full = false) {
     $tag = S('logo_tagline', '1') === '1' && sx('tagline') !== '' ? '<small class="logo-tag">' . e(sx('tagline')) . '</small>' : '';
     return '<span class="logo-lock">' . $img . $tag . '</span>';
 }
-function logo_url() { return has_img(S('logo')) ? full_url('uploads/' . S('logo')) : full_url('assets/img/logo.png'); }
+function logo_url() {
+    $path = has_img(S('logo')) ? 'uploads/' . basename(S('logo')) : 'assets/img/logo.png';
+    $siteUrl = rtrim(trim(S('site_url')), '/');
+    $parts = $siteUrl !== '' ? parse_url($siteUrl) : false;
+    if ($parts
+        && in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+        && !empty($parts['host'])
+        && empty($parts['user'])
+        && empty($parts['pass'])
+        && empty($parts['query'])
+        && empty($parts['fragment'])
+        && empty($parts['path'])) {
+        return $siteUrl . url($path);
+    }
+    return full_url($path);
+}
 function favicon_url() { return has_img(S('favicon')) ? img(S('favicon')) : asset('img/favicon.png'); }
 
 /* ---------- Login throttle (5 wrong passwords => 2 min lock per IP) ---------- */

@@ -7,7 +7,7 @@ $G = [
  'shop' => ['Shipping & Payment', 'truck', [['shipping_inside', 'Delivery charge – Inside Dhaka', 'number'], ['shipping_outside', 'Delivery charge – Outside Dhaka', 'number'], ['free_shipping_min', 'Free delivery above (amount, 0 = never free)', 'number'], ['low_stock', 'Low-stock alert at (units)', 'number'], ['payment_methods', 'Payment methods offered at checkout', 'checks:cod=Cash on Delivery,bkash=bKash,nagad=Nagad'], ['payment_note_en', 'Payment instruction (English)', 'textarea'], ['payment_note_bn', 'Payment instruction (বাংলা)', 'textarea'], ['whatsapp_order', 'Show "Order on WhatsApp" button on product pages', 'toggle']]],
  'float' => ['Floating Contact', 'message-circle', [['float_enabled', 'Show floating contact icon on every page', 'toggle'], ['float_whatsapp', 'WhatsApp number (with country code, e.g. 8801XXXXXXXXX)'], ['float_phone', 'Call number'], ['float_email', 'Email', 'email'], ['float_messenger', 'Messenger link (https://m.me/yourpage)', 'url']]],
  'notify' => ['Notifications', 'bell', [['notify_products', 'Auto-notify visitors when a NEW PRODUCT is added', 'toggle'], ['notify_offers', 'Auto-notify visitors when a NEW COUPON / OFFER is created', 'toggle'], ['notify_email_auto', 'Also auto-email subscribers & customers for every notification (needs SMTP)', 'toggle']]],
- 'mail' => ['Email (SMTP)', 'mail', [['mail_enabled', 'Enable automatic order & notification emails', 'toggle'], ['smtp_host', 'SMTP Host (Gmail: smtp.gmail.com; webmail: from your hosting provider)'], ['smtp_port', 'SMTP Port (587 for TLS, 465 for SSL)', 'number'], ['smtp_secure', 'Encryption', 'select:tls=TLS (587),ssl=SSL (465),none=None'], ['smtp_user', 'SMTP Username / Full Email Address'], ['smtp_pass', 'SMTP Password / Gmail App Password / Mailbox Password', 'password'], ['mail_from', 'From Email (use the same address as the SMTP account)', 'email'], ['mail_from_name', 'From Name'], ['admin_email', 'Admin email (receives new-order alerts)', 'email'], ['order_mail_subject', 'Order email subject'], ['order_mail_body', 'Order email body (HTML). Placeholders: {name} {order_no} {status} {total} {items} {track_url} {site}', 'textarea']]],
+ 'mail' => ['Webmail', 'mail', [['smtp_user', 'Webmail address', 'email'], ['smtp_pass', 'Webmail password', 'password']]],
  'sms' => ['SMS (SSL Wireless)', 'message-square', [['sms_enabled', 'Send order confirmations by SMS', 'toggle'], ['sms_api_url', 'SSL Wireless API endpoint (HTTPS)', 'url'], ['sms_api_user', 'SSL Wireless API username'], ['sms_api_pass', 'SSL Wireless API password', 'password'], ['sms_sender_id', 'SSL Wireless sender ID'], ['order_sms_body', 'Order confirmation SMS. Placeholders: {name} {order_no} {total} {status} {site}', 'textarea']]],
  'push' => ['Browser Push', 'bell', [['push_enabled', 'Send push notifications to opted-in website visitors', 'toggle']]],
 ];
@@ -41,11 +41,27 @@ function generate_vapid_keys() {
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
-    if (isset($_POST['test_mail'])) {
-        $to = trim($_POST['test_to'] ?? ''); if (!filter_var($to, FILTER_VALIDATE_EMAIL)) { flash('Enter a valid email address.', 'err'); redirect('settings.php?tab=mail'); }
-        if (S('mail_enabled') !== '1') { flash('Turn on "Enable automatic emails", save, then send the test.', 'err'); redirect('settings.php?tab=mail'); }
-        $ok = send_mail($to, S('site_name') . ' – test email', '<h3 style="color:#1f5a24">It works!</h3><p>Your SMTP settings are correct. Order and notification emails will now be delivered.</p>');
-        flash($ok ? 'Test email sent to ' . $to . '.' : 'Test failed: ' . (val('SELECT error FROM mail_log ORDER BY id DESC LIMIT 1') ?: 'unknown error'), $ok ? 'ok' : 'err'); redirect('settings.php?tab=mail');
+    if ($tab === 'mail') {
+        $mailAddress = trim($_POST['smtp_user'] ?? '');
+        $mailPassword = $_POST['smtp_pass'] ?? '';
+        $errs = [];
+        if (!filter_var($mailAddress, FILTER_VALIDATE_EMAIL)) $errs[] = 'Enter a valid Webmail address.';
+        if ($mailPassword === '' && S('smtp_pass') === '') $errs[] = 'Enter the Webmail password.';
+        if (!$errs) {
+            set_setting('mail_enabled', '1');
+            set_setting('smtp_user', $mailAddress);
+            if ($mailPassword !== '') set_setting('smtp_pass', $mailPassword);
+            set_setting('smtp_host', 'rain.mywhiteserver.com');
+            set_setting('smtp_port', '587');
+            set_setting('smtp_secure', 'tls');
+            set_setting('mail_from', $mailAddress);
+            set_setting('admin_email', $mailAddress);
+            if (trim(S('mail_from_name')) === '') set_setting('mail_from_name', S('site_name', 'DryNutri'));
+            flash('Webmail settings saved. All website emails will be sent from ' . $mailAddress . '.');
+        } else {
+            foreach ($errs as $error) flash($error, 'err');
+        }
+        redirect('settings.php?tab=mail');
     }
     if (isset($_POST['test_sms'])) {
         $to = preg_replace('/\D+/', '', trim($_POST['test_phone'] ?? ''));
@@ -86,10 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 echo '<div class="tabs-a">'; foreach ($G as $k => $g) echo '<a class="' . ($tab === $k ? 'on' : '') . '" href="?tab=' . $k . '">' . ic($g[1], 16) . ' ' . $g[0] . '</a>'; echo '</div>';
 if ($tab === 'mail') {
-    echo '<div class="panel mail-setup"><h3>Quick SMTP setup</h3><div class="mail-setup-grid">
-      <div class="mail-setup-card"><div><b>Gmail</b><p>Use your full Gmail address and a Google App Password (not your regular password). Enable 2-Step Verification, then create an App Password in your Google Account security settings.</p><small>Host: smtp.gmail.com · Port: 587 · TLS</small></div><button type="button" class="abtn sm" data-mail-host="smtp.gmail.com" data-mail-port="587" data-mail-secure="tls">Use Gmail settings</button></div>
-      <div class="mail-setup-card"><div><b>Webmail / Hosting email</b><p>Create a mailbox in your hosting control panel. Use its full email address and mailbox password. The SMTP hostname must come from your host (often mail.yourdomain.com).</p><small>Common options: port 465 with SSL, or port 587 with TLS. Match the From Email to this mailbox.</small></div><button type="button" class="abtn sm" data-mail-host="mail.yourdomain.com" data-mail-port="465" data-mail-secure="ssl">Use Webmail settings</button></div>
-    </div><p class="muted" data-mail-preset-note>Choose a preset to fill the connection fields, then enter your account details and save. For webmail, replace the example host with the exact SMTP hostname supplied by your hosting provider.</p></div>';
+    echo '<div class="panel mail-setup"><h3>Webmail delivery</h3><p class="muted">Enter the Webmail address and mailbox password created in your hosting control panel. SMTP is configured for rain.mywhiteserver.com using port 587 with TLS. All order, password reset, contact, and notification emails will be sent through this account.</p><p class="muted">Leave the password field blank to keep the saved password. Confirm with your host that this mailbox is enabled for authenticated SMTP.</p><a class="abtn sm" href="test_email.php">' . ic('send') . ' Send test email</a></div>';
 }
 echo '<div class="panel"><form method="post" enctype="multipart/form-data" class="aform">' . csrf_field() . '<div class="fgrid2">';
 if ($tab === 'appearance') {
@@ -109,12 +122,7 @@ foreach ($G[$tab][2] as $f) { $k = $f[0]; $ty = $f[2] ?? 'text'; $v = S($k); $fu
     else echo '<input type="' . ($ty === 'number' ? 'number" step="any" min="0' : ($ty === 'email' ? 'email' : 'text')) . '" name="' . $k . '" value="' . e($v) . '"' . (!empty($f[3]) ? ' required' : '') . '>';
     echo '</div>'; }
 echo '</div><div class="form-actions"><button class="abtn">' . ic('save') . ' Save ' . e($G[$tab][0]) . '</button><a class="abtn ghost" href="../" target="_blank">' . ic('external') . ' Preview site</a></div></form></div>';
-if ($tab === 'mail') echo '<script>(function(){document.querySelectorAll("[data-mail-host]").forEach(function(b){b.onclick=function(){document.querySelector("[name=smtp_host]").value=b.dataset.mailHost;document.querySelector("[name=smtp_port]").value=b.dataset.mailPort;document.querySelector("[name=smtp_secure]").value=b.dataset.mailSecure;document.querySelector("[name=smtp_host]").focus();document.querySelector("[data-mail-preset-note]").textContent=b.dataset.mailSecure==="ssl"?"Webmail preset applied. Replace mail.yourdomain.com with the SMTP hostname from your hosting provider, enter the mailbox credentials, then save.":"Gmail preset applied. Enter your full Gmail address and Google App Password, then save."}})})()</script>';
 if ($tab === 'appearance') echo '<script>(function(){var P=document.getElementById("c_primary_color"),A=document.getElementById("c_accent_color");function sync(){document.getElementById("h_primary_color").textContent=P.value;document.getElementById("h_accent_color").textContent=A.value}P.oninput=A.oninput=sync;document.querySelectorAll(".preset").forEach(function(b){b.onclick=function(){P.value=b.dataset.p;A.value=b.dataset.a;sync()}})})()</script>';
-if ($tab === 'mail') {
-    echo '<div class="panel"><h3>' . ic('send') . ' Send a test email</h3><form method="post" class="filt">' . csrf_field() . '<input type="hidden" name="test_mail" value="1"><input type="email" name="test_to" required value="' . e(user()['email']) . '"><button class="abtn sm">Send test</button></form><p class="muted">Gmail: turn on 2-step verification, create an <b>App Password</b> and paste it above (host smtp.gmail.com, port 587, TLS). Save first, then test.</p>';
-    echo '<h3>Recent email log</h3><div class="table-wrap"><table class="atbl"><tr><th>Time</th><th>To</th><th>Subject</th><th>Status</th><th>Error</th></tr>'; foreach (rows('SELECT * FROM mail_log ORDER BY id DESC LIMIT 10') as $m) echo '<tr><td>' . date('d M h:i A', strtotime($m['created_at'])) . '</td><td>' . e($m['to_email']) . '</td><td>' . e($m['subject']) . '</td><td><span class="pill ' . ($m['status'] === 'sent' ? 's-delivered' : 's-cancelled') . '">' . $m['status'] . '</span></td><td>' . e($m['error']) . '</td></tr>'; echo '</table></div></div>';
-}
 if ($tab === 'sms') {
     echo '<div class="panel"><h3>' . ic('send') . ' Send a test SMS</h3><form method="post" class="filt">' . csrf_field() . '<input type="hidden" name="test_sms" value="1"><input type="tel" name="test_phone" required placeholder="01XXXXXXXXX"><button class="abtn sm">Send test SMS</button></form><p class="muted">Save your SSL Wireless API URL, username, password and sender ID first. Test messages may incur charges. Use the endpoint and credentials provided for your SSL Wireless account.</p></div>';
 }

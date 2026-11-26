@@ -707,6 +707,7 @@ CREATE TABLE `password_reset_requests` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `token_hash` char(64) DEFAULT NULL,
+  `code_hash` char(64) DEFAULT NULL,
   `request_ip` varchar(45) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `expires_at` datetime DEFAULT NULL
@@ -716,8 +717,8 @@ CREATE TABLE `password_reset_requests` (
 -- Dumping data for table `password_reset_requests`
 --
 
-INSERT INTO `password_reset_requests` (`id`, `user_id`, `token_hash`, `request_ip`, `created_at`, `expires_at`) VALUES
-(1, NULL, NULL, '::1', '2026-11-11 12:53:31', NULL);
+INSERT INTO `password_reset_requests` (`id`, `user_id`, `token_hash`, `code_hash`, `request_ip`, `created_at`, `expires_at`) VALUES
+(1, NULL, NULL, NULL, '::1', '2026-11-11 12:53:31', NULL);
 
 -- --------------------------------------------------------
 
@@ -1916,6 +1917,7 @@ ALTER TABLE `pages`
 ALTER TABLE `password_reset_requests`
   ADD PRIMARY KEY (`id`),
   ADD KEY `token_hash` (`token_hash`),
+  ADD KEY `code_hash` (`code_hash`),
   ADD KEY `request_ip_created` (`request_ip`,`created_at`),
   ADD KEY `user_id` (`user_id`);
 

@@ -55,7 +55,17 @@ function crud($c) {
                 if (isset($c['after'])) $c['after']($id, !$old, $d);
                 audit_activity($old ? 'update' : 'create', ($old ? 'Updated ' : 'Created ') . ($c['single'] ?? $t), $t, $id);
                 flash('Saved successfully.');
-            } catch (PDOException $ex) { flash('Could not save: ' . (strpos($ex->getMessage(), 'Duplicate') !== false ? 'duplicate value (email/slug/code must be unique).' : $ex->getMessage()), 'err'); }
+            } catch (PDOException $ex) {
+                $message = $ex->getMessage();
+                $isDuplicate = $ex->errorInfo[1] === 1062 || stripos($message, 'Duplicate') !== false;
+                if ($isDuplicate) {
+                    $field = stripos($message, 'email') !== false ? 'email address' : (stripos($message, 'slug') !== false ? 'slug' : (stripos($message, 'code') !== false ? 'code' : 'value'));
+                    $flashMessage = 'Could not save: this ' . $field . ' is already in use. Use a unique ' . $field . '.';
+                } else {
+                    $flashMessage = 'Could not save: ' . $message;
+                }
+                flash($flashMessage, 'err');
+            }
             redirect($back);
         }
     }

@@ -15,6 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['_save'])) {
 }
 crud(['table' => 'users', 'title' => 'Managers & Admins', 'single' => 'Staff Member', 'where' => "role IN ('admin','manager')", 'search' => ['name', 'email'], 'defaults' => ['status' => 1, 'role' => 'manager', 'perms' => ''],
  'can_delete' => fn($r) => $r['id'] != user()['id'],
+ 'validate' => function ($d, $old, $id) {
+  $email = strtolower(trim((string)($d['email'] ?? '')));
+  if ($email === '') return 'Email (login) is required.';
+  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return 'Enter a valid email address.';
+  if (val("SELECT id FROM users WHERE LOWER(email)=LOWER(?) AND id<>?", [$email, $id])) {
+   return 'This email is already registered. Use a different email address.';
+  }
+  return '';
+ },
  'after' => function ($id, $new, $d) {
   $code = $_POST['manager_action_code'] ?? '';
   if (($d['role'] ?? '') === 'manager' && is_string($code) && $code !== '') q('UPDATE users SET manager_action_code_hash=? WHERE id=?', [password_hash($code, PASSWORD_DEFAULT), $id]);

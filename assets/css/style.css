@@ -261,7 +261,9 @@ button:focus-visible,.btn:focus-visible{outline:3px solid color-mix(in srgb,var(
 .auth-form input:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 4px color-mix(in srgb,var(--green) 14%,transparent)}
 .auth-forgot{align-self:flex-end;margin-top:-8px;color:var(--green);font-size:.88rem;font-weight:600}
 [data-theme=dark] .auth-forgot{color:var(--accent)}
-.auth-form .btn{min-height:49px;border-radius:12px;font-size:.98rem}
+.auth-form .btn{min-height:49px;border-radius:12px;font-size:.98rem;transform:none!important;transition:filter .18s ease,background .18s ease,border-color .18s ease!important}
+.auth-form .btn:hover,.auth-form .btn:active{transform:none!important}
+.auth-login,.auth-single,.auth-login:hover,.auth-single:hover{transform:none!important}
 .auth-register{margin:24px 0 0;text-align:center;color:var(--muted);font-size:.9rem}
 .auth-register a{color:var(--green);font-weight:700}
 [data-theme=dark] .auth-register a{color:var(--accent)}
@@ -295,8 +297,6 @@ body:before{
 .banner,
 .news,
 .features,
-.auth-login,
-.auth-single,
 .card-flat,
 .fbox,
 .sortbar,
@@ -343,9 +343,7 @@ body:before{
 .card-flat:hover,
 .stat:hover,
 .cline:hover,
-.features:hover,
-.auth-login:hover,
-.auth-single:hover{
+.features:hover{
   transform:translateY(-5px) translateZ(8px);
   box-shadow:var(--shadow2),0 22px 46px rgba(20,70,28,.16);
 }
@@ -405,9 +403,7 @@ body:before{
   .card-flat:hover,
   .stat:hover,
   .cline:hover,
-  .features:hover,
-  .auth-login:hover,
-  .auth-single:hover{
+  .features:hover{
     transform:translateY(-2px);
   }
 }
